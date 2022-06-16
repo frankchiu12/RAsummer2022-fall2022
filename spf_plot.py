@@ -45,7 +45,11 @@ class Plot:
             self.percentile_25th_list.append(statistic[0])
             self.percentile_median_list.append(statistic[1])
             self.percentile_75th_list.append(statistic[2])
-    
+
+        # print(self.percentile_25th_list)
+        # print(self.percentile_median_list)
+        # print(self.percentile_75th_list)
+
     def plot(self, statistic):
 
         # NOTE: dark mode: plt.style.use("dark_background")
@@ -75,9 +79,9 @@ class Plot:
         plt.show()
 
 # RGDP
-# Plot('/Users/franksi-unchiu/Downloads/Individual_RGDP.xlsx', 'RGDP')
+Plot('/Users/franksi-unchiu/Downloads/Individual_RGDP.xlsx', 'RGDP')
 # CPI
-# Plot('/Users/franksi-unchiu/Downloads/Individual_CPI.xlsx', 'CPI')
+Plot('/Users/franksi-unchiu/Downloads/Individual_CPI.xlsx', 'CPI')
 # PCE
 Plot('/Users/franksi-unchiu/Downloads/Individual_PCE.xlsx', 'PCE')
 
