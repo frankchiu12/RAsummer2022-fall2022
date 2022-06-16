@@ -1,13 +1,12 @@
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 class Plot:
 
     def __init__(self, file_path, statistic):
-        self.df = pd.read_excel(file_path)
-        self.df = self.df.dropna(subset=[statistic + '1'])
-        self.year_column_list = self.df.YEAR.unique()
+        self.df = pd.read_excel(file_path).dropna(subset=[statistic + '1'])
+        self.year_list = self.df.YEAR.unique()
         self.quarter_list = [1, 2, 3, 4]
         self.year_to_quarter_to_statistics = {}
         self.year_quarter_list = []
@@ -18,7 +17,7 @@ class Plot:
         self.plot(statistic)
 
     def data(self, statistic):
-        for year in self.year_column_list:
+        for year in self.year_list:
             if year not in self.year_to_quarter_to_statistics:
                 self.year_to_quarter_to_statistics[year] = {}
             for quarter in self.quarter_list:
@@ -49,23 +48,21 @@ class Plot:
     
     def plot(self, statistic):
 
+        # NOTE: dark mode: plt.style.use("dark_background")
         plt.rcParams["figure.figsize"] = [12, 6]
         plt.rcParams["figure.autolayout"] = True
-        # NOTE: dark mode: plt.style.use("dark_background")
-        
-        fig = plt.gcf()
-        fig.canvas.manager.set_window_title(statistic + ' Graphs')
-        plt.suptitle(statistic + ' Graphs', fontweight = 'bold', backgroundcolor = 'silver')
+        plt.gcf().canvas.manager.set_window_title(statistic)
+        plt.suptitle(statistic, fontweight = 'bold', backgroundcolor = 'silver')
 
         for i in range(1, 4):
             plt.subplot(2, 2, i)
             plt.tight_layout()
 
-        plt.subplot(2, 2, 1).plot(self.year_quarter_list, self.percentile_25th_list, label = '25th percentile', color = 'blue' , linewidth = 3, linestyle = '-')
+        plt.subplot(2, 2, 1).plot(self.year_quarter_list, self.percentile_25th_list, color = 'blue', linewidth = 3)
         plt.subplot(2, 2, 1).set_title('25th Percentile ' + statistic, loc='left')
-        plt.subplot(2, 2, 2).plot(self.year_quarter_list, self.percentile_median_list, label = 'median', color = 'red' , linewidth = 3, linestyle = '-')
+        plt.subplot(2, 2, 2).plot(self.year_quarter_list, self.percentile_median_list, color = 'red', linewidth = 3)
         plt.subplot(2, 2, 2).set_title('Median ' + statistic, loc='left')
-        plt.subplot(2, 2, 3).plot(self.year_quarter_list, self.percentile_75th_list, label = '75th percentile', color = 'green' , linewidth = 3, linestyle = '-')
+        plt.subplot(2, 2, 3).plot(self.year_quarter_list, self.percentile_75th_list, color = 'green', linewidth = 3)
         plt.subplot(2, 2, 3).set_title('75th Percentile ' + statistic, loc='left')
 
         for i in range(1, 4):
@@ -83,3 +80,8 @@ class Plot:
 # Plot('/Users/franksi-unchiu/Downloads/Individual_CPI.xlsx', 'CPI')
 # PCE
 Plot('/Users/franksi-unchiu/Downloads/Individual_PCE.xlsx', 'PCE')
+
+# QUESTIONS:
+# 1. any visual changes?
+# 2. which data do I continue with?
+# 3. overlap doesn't help
