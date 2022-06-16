@@ -1,17 +1,11 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <model>
-  <name>stdver</name>
-  <xml_version>1.0</xml_version>
-  <state_space>yes</state_space>
   <variable>
     <name>dmptmax</name>
     <equation_type>Behavioral</equation_type>
     <sector>Financial Sector</sector>
     <definition>Monetary policy indicator for both thresholds</definition>
-    <description>DMPTMAX equals one when either the unemployment threshold or
-the inflation threshold is breached.
-
-</description>
+    <description>DMPTMAX equals one when either the unemployment threshold or the inflation threshold is breached.
+    </description>
     <standard_equation>
       <eviews_equation>dmptmax - dmptmax_aerr = (@recode((dmptlur)&gt;(dmptpi),dmptlur,dmptpi)) </eviews_equation>
       <python_equation>dmptmax - dmptmax_aerr = (max((dmptlur),(dmptpi))) </python_equation>
