@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -46,10 +47,6 @@ class Plot:
             self.percentile_median_list.append(statistic[1])
             self.percentile_75th_list.append(statistic[2])
 
-        # print(self.percentile_25th_list)
-        # print(self.percentile_median_list)
-        # print(self.percentile_75th_list)
-
     def plot(self, statistic):
 
         # NOTE: dark mode: plt.style.use("dark_background")
@@ -78,14 +75,10 @@ class Plot:
 
         plt.show()
 
+os.system('cls' if os.name == 'nt' else 'clear')
 # RGDP
 Plot('/Users/franksi-unchiu/Downloads/Individual_RGDP.xlsx', 'RGDP')
 # CPI
 Plot('/Users/franksi-unchiu/Downloads/Individual_CPI.xlsx', 'CPI')
 # PCE
 Plot('/Users/franksi-unchiu/Downloads/Individual_PCE.xlsx', 'PCE')
-
-# QUESTIONS:
-# 1. any visual changes?
-# 2. which data do I continue with?
-# 3. overlap doesn't help
