@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 import numpy as np
 
 class Plot:
@@ -55,22 +56,23 @@ class Plot:
         plt.rcParams["figure.figsize"] = [12, 6]
         plt.rcParams["figure.autolayout"] = True
         plt.gcf().canvas.manager.set_window_title(statistic)
-        plt.suptitle(statistic, fontweight = 'bold', backgroundcolor = 'silver')
+        plt.suptitle(statistic + ' Expectations One Quarter Ahead Plots', fontweight = 'bold', backgroundcolor = 'silver')
 
         for i in range(1, 5):
             plt.subplot(2, 2, i)
             plt.tight_layout()
 
         plt.subplot(2, 2, 1).plot(self.year_quarter_list, self.percentile_25th_list, color = 'red', linewidth = 2)
-        plt.subplot(2, 2, 1).set_title('25th Percentile ' + statistic, loc = 'left')
+        plt.subplot(2, 2, 1).set_title('25th Percentile ' + statistic + ' Expectations One Quarter Ahead', loc = 'left')
         plt.subplot(2, 2, 2).plot(self.year_quarter_list, self.percentile_median_list, color = 'blue', linewidth = 2)
-        plt.subplot(2, 2, 2).set_title('Median ' + statistic, loc = 'left')
+        plt.subplot(2, 2, 2).set_title('Median ' + statistic + ' Expectations One Quarter Ahead', loc = 'left')
         plt.subplot(2, 2, 3).plot(self.year_quarter_list, self.percentile_75th_list, color = 'green', linewidth = 2)
-        plt.subplot(2, 2, 3).set_title('75th Percentile ' + statistic, loc = 'left')
-        plt.subplot(2, 2, 4).plot(self.year_quarter_list, self.percentile_25th_list, color = 'red', linewidth = 2)
-        plt.subplot(2, 2, 4).plot(self.year_quarter_list, self.percentile_median_list, color = 'blue', linewidth = 2)
-        plt.subplot(2, 2, 4).plot(self.year_quarter_list, self.percentile_75th_list, color = 'green', linewidth = 2)
-        plt.subplot(2, 2, 4).set_title('Comparison of ' + statistic, loc = 'left')
+        plt.subplot(2, 2, 3).set_title('75th Percentile ' + statistic + ' Expectations One Quarter Ahead', loc = 'left')
+        plt.subplot(2, 2, 4).plot(self.year_quarter_list, self.percentile_25th_list, color = 'red', linewidth = 2, label = '25th Percentile')
+        plt.subplot(2, 2, 4).plot(self.year_quarter_list, self.percentile_median_list, color = 'blue', linewidth = 2, label = 'Median')
+        plt.subplot(2, 2, 4).plot(self.year_quarter_list, self.percentile_75th_list, color = 'green', linewidth = 2, label = '75th Percentile')
+        plt.subplot(2, 2, 4).set_title('Comparison of ' + statistic + 's Expectations One Quarter Ahead', loc = 'left')
+        plt.subplot(2, 2, 4).legend(loc = 'upper right')
 
         for i in range(1, 5):
             plt.subplot(2, 2, i).set_xlabel('YEAR-QUARTER')
@@ -78,6 +80,7 @@ class Plot:
             plt.subplot(2, 2, i).set_ylabel(statistic)
             plt.subplot(2, 2, i).set_xticks(self.year_quarter_list[::16])
             plt.subplot(2, 2, i).set_xticklabels(self.year_quarter_list[::16], rotation = 45)
+            plt.subplot(2, 2, i).yaxis.set_major_locator(MaxNLocator(nbins = 6, integer = True))
 
         plt.show()
 
@@ -86,5 +89,9 @@ os.system('cls' if os.name == 'nt' else 'clear')
 Plot('spf_plot_data/Individual_RGDP.xlsx', 'RGDP')
 # CPI
 Plot('spf_plot_data/Individual_CPI.xlsx', 'CPI')
+# CORECPI
+Plot('spf_plot_data/Individual_CORECPI.xlsx', 'CORECPI')
 # PCE
 Plot('spf_plot_data/Individual_PCE.xlsx', 'PCE')
+# COREPCE
+Plot('spf_plot_data/Individual_COREPCE.xlsx', 'COREPCE')
