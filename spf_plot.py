@@ -7,7 +7,7 @@ class Plot:
 
     def __init__(self, relative_file_path, statistic):
 
-        self.df = pd.read_excel(relative_file_path).dropna(subset=[statistic + '1'])
+        self.df = pd.read_excel(relative_file_path).dropna(subset=[statistic + '3'])
         self.year_list = self.df.YEAR.unique()
         self.quarter_list = [1, 2, 3, 4]
         self.year_to_quarter_to_statistic = {}
@@ -25,7 +25,7 @@ class Plot:
                 self.year_to_quarter_to_statistic[year] = {}
             for quarter in self.quarter_list:
                 if quarter not in self.year_to_quarter_to_statistic[year]:
-                    self.year_to_quarter_to_statistic[year][quarter] = self.df.loc[self.df['YEAR'].eq(year) & self.df['QUARTER'].eq(quarter)][statistic + '1'].tolist()
+                    self.year_to_quarter_to_statistic[year][quarter] = self.df.loc[self.df['YEAR'].eq(year) & self.df['QUARTER'].eq(quarter)][statistic + '3'].tolist()
 
         for year in self.year_to_quarter_to_statistic:
             for quarter in self.year_to_quarter_to_statistic[year]:
@@ -57,23 +57,27 @@ class Plot:
         plt.gcf().canvas.manager.set_window_title(statistic)
         plt.suptitle(statistic, fontweight = 'bold', backgroundcolor = 'silver')
 
-        for i in range(1, 4):
+        for i in range(1, 5):
             plt.subplot(2, 2, i)
             plt.tight_layout()
 
-        plt.subplot(2, 2, 1).plot(self.year_quarter_list, self.percentile_25th_list, color = 'red', linewidth = 3)
-        plt.subplot(2, 2, 1).set_title('25th Percentile ' + statistic, loc='left')
-        plt.subplot(2, 2, 2).plot(self.year_quarter_list, self.percentile_median_list, color = 'blue', linewidth = 3)
-        plt.subplot(2, 2, 2).set_title('Median ' + statistic, loc='left')
-        plt.subplot(2, 2, 3).plot(self.year_quarter_list, self.percentile_75th_list, color = 'green', linewidth = 3)
-        plt.subplot(2, 2, 3).set_title('75th Percentile ' + statistic, loc='left')
+        plt.subplot(2, 2, 1).plot(self.year_quarter_list, self.percentile_25th_list, color = 'red', linewidth = 2)
+        plt.subplot(2, 2, 1).set_title('25th Percentile ' + statistic, loc = 'left')
+        plt.subplot(2, 2, 2).plot(self.year_quarter_list, self.percentile_median_list, color = 'blue', linewidth = 2)
+        plt.subplot(2, 2, 2).set_title('Median ' + statistic, loc = 'left')
+        plt.subplot(2, 2, 3).plot(self.year_quarter_list, self.percentile_75th_list, color = 'green', linewidth = 2)
+        plt.subplot(2, 2, 3).set_title('75th Percentile ' + statistic, loc = 'left')
+        plt.subplot(2, 2, 4).plot(self.year_quarter_list, self.percentile_25th_list, color = 'red', linewidth = 2)
+        plt.subplot(2, 2, 4).plot(self.year_quarter_list, self.percentile_median_list, color = 'blue', linewidth = 2)
+        plt.subplot(2, 2, 4).plot(self.year_quarter_list, self.percentile_75th_list, color = 'green', linewidth = 2)
+        plt.subplot(2, 2, 4).set_title('Comparison of ' + statistic, loc = 'left')
 
-        for i in range(1, 4):
+        for i in range(1, 5):
             plt.subplot(2, 2, i).set_xlabel('YEAR-QUARTER')
             plt.subplot(2, 2, i).xaxis.labelpad = 10
             plt.subplot(2, 2, i).set_ylabel(statistic)
             plt.subplot(2, 2, i).set_xticks(self.year_quarter_list[::16])
-            plt.subplot(2, 2, i).set_xticklabels(self.year_quarter_list[::16], rotation=45)
+            plt.subplot(2, 2, i).set_xticklabels(self.year_quarter_list[::16], rotation = 45)
 
         plt.show()
 
