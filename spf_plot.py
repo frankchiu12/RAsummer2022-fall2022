@@ -84,14 +84,18 @@ class Plot:
 
         plt.show()
 
-os.system('cls' if os.name == 'nt' else 'clear')
-# RGDP
-Plot('spf_plot_data/Individual_RGDP.xlsx', 'RGDP')
-# CPI
-Plot('spf_plot_data/Individual_CPI.xlsx', 'CPI')
-# CORECPI
-Plot('spf_plot_data/Individual_CORECPI.xlsx', 'CORECPI')
-# PCE
-Plot('spf_plot_data/Individual_PCE.xlsx', 'PCE')
-# COREPCE
-Plot('spf_plot_data/Individual_COREPCE.xlsx', 'COREPCE')
+try:
+    os.system('cls' if os.name == 'nt' else 'clear')
+    # RGDP
+    Plot('spf_plot_data/Individual_RGDP.xlsx', 'RGDP')
+    # CPI
+    Plot('spf_plot_data/Individual_CPI.xlsx', 'CPI')
+    # CORECPI
+    Plot('spf_plot_data/Individual_CORECPI.xlsx', 'CORECPI')
+    # PCE
+    Plot('spf_plot_data/Individual_PCE.xlsx', 'PCE')
+    # COREPCE
+    Plot('spf_plot_data/Individual_COREPCE.xlsx', 'COREPCE')
+except:
+    pass
+
