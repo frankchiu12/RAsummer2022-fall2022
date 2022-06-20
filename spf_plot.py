@@ -6,7 +6,7 @@ import numpy as np
 
 class Plot:
 
-    def __init__(self, relative_file_path, statistic, has_underscore):
+    def __init__(self, relative_file_path, statistic, is_growth, has_underscore):
 
         if (has_underscore):
             self.df = pd.read_excel(relative_file_path).dropna(subset=[statistic + '_3'])
@@ -20,12 +20,15 @@ class Plot:
         self.percentile_median_list = []
         self.percentile_75th_list = []
         if (has_underscore):
-            self.data(statistic + '_')
+            self.data(statistic + '_', is_growth)
         else:
-            self.data(statistic)
-        self.plot(statistic.upper())
+            self.data(statistic, is_growth)
+        if (is_growth):
+            self.plot(statistic.upper() + ' Annual Growth')
+        else:
+            self.plot(statistic.upper())
 
-    def data(self, statistic):
+    def data(self, statistic, is_growth):
 
         for year in self.year_list:
             if year not in self.year_to_quarter_to_statistic:
@@ -50,11 +53,34 @@ class Plot:
                     if len(self.year_to_quarter_to_statistic[year][quarter]) > 0:
                         year_quarter_to_statistic[str(int(year)) + '-' + str(quarter)] = self.year_to_quarter_to_statistic[year][quarter]
 
-        for year_quarter, statistic in year_quarter_to_statistic.items():
-            self.year_quarter_list.append(year_quarter)
-            self.percentile_25th_list.append(statistic[0])
-            self.percentile_median_list.append(statistic[1])
-            self.percentile_75th_list.append(statistic[2])
+        if is_growth:
+            year_quarter_to_statistic_copy = year_quarter_to_statistic.copy()
+            year_quarter_to_pop_list = []
+            for year_quarter, statistic in year_quarter_to_statistic_copy.items():
+                past_year_int = int(year_quarter[:4]) - 1
+                past_year_quarter = str(past_year_int) + year_quarter[4:]
+                if past_year_quarter in year_quarter_to_statistic:
+                    year_quarter_to_statistic_copy[year_quarter] = [(year_quarter_to_statistic[year_quarter][0] - year_quarter_to_statistic[past_year_quarter][0])/year_quarter_to_statistic[past_year_quarter][0], (year_quarter_to_statistic[year_quarter][1] - year_quarter_to_statistic[past_year_quarter][1])/year_quarter_to_statistic[past_year_quarter][1], (year_quarter_to_statistic[year_quarter][2] - year_quarter_to_statistic[past_year_quarter][2])/year_quarter_to_statistic[past_year_quarter][2]]
+                else:
+                    year_quarter_to_pop_list.append(year_quarter)
+
+            for year_quarter in year_quarter_to_pop_list:
+                year_quarter_to_statistic_copy.pop(year_quarter)
+
+            year_quarter_to_statistic = year_quarter_to_statistic_copy
+
+            for year_quarter, statistic in year_quarter_to_statistic.items():
+                self.year_quarter_list.append(year_quarter)
+                self.percentile_25th_list.append(statistic[0])
+                self.percentile_median_list.append(statistic[1])
+                self.percentile_75th_list.append(statistic[2])
+
+        else:
+            for year_quarter, statistic in year_quarter_to_statistic.items():
+                self.year_quarter_list.append(year_quarter)
+                self.percentile_25th_list.append(statistic[0])
+                self.percentile_median_list.append(statistic[1])
+                self.percentile_75th_list.append(statistic[2])
 
     def plot(self, statistic):
 
@@ -77,7 +103,7 @@ class Plot:
         plt.subplot(2, 2, 4).plot(self.year_quarter_list, self.percentile_25th_list, color = 'red', linewidth = 2, label = '25th Percentile')
         plt.subplot(2, 2, 4).plot(self.year_quarter_list, self.percentile_median_list, color = 'blue', linewidth = 2, label = 'Median')
         plt.subplot(2, 2, 4).plot(self.year_quarter_list, self.percentile_75th_list, color = 'green', linewidth = 2, label = '75th Percentile')
-        plt.subplot(2, 2, 4).set_title('Comparison of ' + statistic + 's Expectations One Quarter Ahead', loc = 'left')
+        plt.subplot(2, 2, 4).set_title('Comparison of ' + statistic + ' Expectations One Quarter Ahead', loc = 'left')
         plt.subplot(2, 2, 4).legend(loc = 'upper right')
 
         for i in range(1, 5):
@@ -93,21 +119,23 @@ class Plot:
 try:
     os.system('cls' if os.name == 'nt' else 'clear')
     # RGDP
-    Plot('spf_plot_data/Individual_RGDP.xlsx', 'RGDP', False)
+    Plot('spf_plot_data/Individual_RGDP.xlsx', 'RGDP', False, False)
+    # RGDP Growth
+    Plot('spf_plot_data/Individual_RGDP.xlsx', 'RGDP', True, False)
     # PRGDP
-    Plot('spf_plot_data/Individual_PRGDP.xlsx', 'PRGDP', False)
+    Plot('spf_plot_data/Individual_PRGDP.xlsx', 'PRGDP', False, False)
     # CPI
-    Plot('spf_plot_data/Individual_CPI.xlsx', 'CPI', False)
+    Plot('spf_plot_data/Individual_CPI.xlsx', 'CPI', False, False)
     # CORECPI
-    Plot('spf_plot_data/Individual_CORECPI.xlsx', 'CORECPI', False)
+    Plot('spf_plot_data/Individual_CORECPI.xlsx', 'CORECPI', False, False)
     # PCE
-    Plot('spf_plot_data/Individual_PCE.xlsx', 'PCE', False)
+    Plot('spf_plot_data/Individual_PCE.xlsx', 'PCE', False, False)
     # COREPCE
-    Plot('spf_plot_data/Individual_COREPCE.xlsx', 'COREPCE', False)
+    Plot('spf_plot_data/Individual_COREPCE.xlsx', 'COREPCE', False, False)
     # RR1_TBILL_PGDP
-    Plot('spf_plot_data/Individual_RR1_TBILL_PGDP.xlsx', 'RR1_TBILL_PGDP', True)
+    Plot('spf_plot_data/Individual_RR1_TBILL_PGDP.xlsx', 'RR1_TBILL_PGDP', False, True)
     # SPR_TBOND_TBILL
-    Plot('spf_plot_data/Individual_SPR_TBOND_TBILL.xlsx', 'SPR_Tbond_Tbill', False)
+    Plot('spf_plot_data/Individual_SPR_TBOND_TBILL.xlsx', 'SPR_Tbond_Tbill', False, False)
 
 except:
     pass
