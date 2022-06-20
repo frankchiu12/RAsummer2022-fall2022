@@ -1,7 +1,6 @@
 import os
 import re
 
-# NOTE: paste in the paragraph for votes FOR
 str_to_parse = ''
 
 def parse_voting_for():

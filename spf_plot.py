@@ -6,9 +6,12 @@ import numpy as np
 
 class Plot:
 
-    def __init__(self, relative_file_path, statistic):
+    def __init__(self, relative_file_path, statistic, has_underscore):
 
-        self.df = pd.read_excel(relative_file_path).dropna(subset=[statistic + '3'])
+        if (has_underscore):
+            self.df = pd.read_excel(relative_file_path).dropna(subset=[statistic + '_3'])
+        else:
+            self.df = pd.read_excel(relative_file_path).dropna(subset=[statistic + '3'])
         self.year_list = self.df.YEAR.unique()
         self.quarter_list = [1, 2, 3, 4]
         self.year_to_quarter_to_statistic = {}
@@ -16,8 +19,11 @@ class Plot:
         self.percentile_25th_list = []
         self.percentile_median_list = []
         self.percentile_75th_list = []
-        self.data(statistic)
-        self.plot(statistic)
+        if (has_underscore):
+            self.data(statistic + '_')
+        else:
+            self.data(statistic)
+        self.plot(statistic.upper())
 
     def data(self, statistic):
 
@@ -53,7 +59,7 @@ class Plot:
     def plot(self, statistic):
 
         # NOTE: dark mode: plt.style.use("dark_background")
-        plt.rcParams["figure.figsize"] = [12, 6]
+        plt.rcParams["figure.figsize"] = [13, 6.5]
         plt.rcParams["figure.autolayout"] = True
         plt.gcf().canvas.manager.set_window_title(statistic)
         plt.suptitle(statistic + ' Expectations One Quarter Ahead Plots', fontweight = 'bold', backgroundcolor = 'silver')
@@ -87,15 +93,22 @@ class Plot:
 try:
     os.system('cls' if os.name == 'nt' else 'clear')
     # RGDP
-    Plot('spf_plot_data/Individual_RGDP.xlsx', 'RGDP')
+    Plot('spf_plot_data/Individual_RGDP.xlsx', 'RGDP', False)
+    # PRGDP
+    Plot('spf_plot_data/Individual_PRGDP.xlsx', 'PRGDP', False)
     # CPI
-    Plot('spf_plot_data/Individual_CPI.xlsx', 'CPI')
+    Plot('spf_plot_data/Individual_CPI.xlsx', 'CPI', False)
     # CORECPI
-    Plot('spf_plot_data/Individual_CORECPI.xlsx', 'CORECPI')
+    Plot('spf_plot_data/Individual_CORECPI.xlsx', 'CORECPI', False)
     # PCE
-    Plot('spf_plot_data/Individual_PCE.xlsx', 'PCE')
+    Plot('spf_plot_data/Individual_PCE.xlsx', 'PCE', False)
     # COREPCE
-    Plot('spf_plot_data/Individual_COREPCE.xlsx', 'COREPCE')
+    Plot('spf_plot_data/Individual_COREPCE.xlsx', 'COREPCE', False)
+    # RR1_TBILL_PGDP
+    Plot('spf_plot_data/Individual_RR1_TBILL_PGDP.xlsx', 'RR1_TBILL_PGDP', True)
+    # SPR_TBOND_TBILL
+    Plot('spf_plot_data/Individual_SPR_TBOND_TBILL.xlsx', 'SPR_Tbond_Tbill', False)
+
 except:
     pass
 
