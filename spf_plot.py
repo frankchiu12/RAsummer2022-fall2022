@@ -136,6 +136,5 @@ try:
     Plot('spf_plot_data/Individual_RR1_TBILL_PGDP.xlsx', 'RR1_TBILL_PGDP', False, True)
     # SPR_TBOND_TBILL
     Plot('spf_plot_data/Individual_SPR_TBOND_TBILL.xlsx', 'SPR_Tbond_Tbill', False, False)
-
 except:
     pass
