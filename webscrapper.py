@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup, NavigableString
 from nltk import tokenize
 import re
+from datetime import datetime
 
 date_to_text = {}
 date_to_voting = {}
@@ -95,8 +96,11 @@ class WebScrapper():
                 del self.text[-1]
             self.text = ' '.join(self.text)
 
-            if date not in date_to_text:
-                date_to_text[date] = self.text
+            if self.convert_date(date) not in date_to_text:
+                date_to_text[self.convert_date(date)] = self.text
+
+    def convert_date(self, date):
+        return datetime.strptime(date, '%B %d, %Y').strftime('%m/%d/%Y')
 
 for i in range(1999, 2022):
     webscrapper = WebScrapper(str(i))
@@ -115,9 +119,23 @@ for date, text in date_to_text.items():
         voting_for = voting_for.replace('::', ':').replace('  ', ' ').replace(', Vice Chairman;', ';').replace(', Vice Chair;', ';').replace(', Chairman;', ';').replace(', Chair;', ';').replace(', Chair,', ';').replace(', Jr.', '').replace(', and', ';').replace(',', ';').replace('; and', ';').strip()
         voting_for = tokenize.sent_tokenize(voting_for.partition('Voting for the FOMC monetary policy action were: ')[2])[0]
 
-        # voting_for = voting_for.split('; ')
+        last_name_list = []
+        voting_for = voting_for.split('; ')
+        for name in voting_for:
+            word_in_name_list = name.split(' ')
+            if '' in word_in_name_list:
+                word_in_name_list.remove('')
+            
+            last_name_list.append(word_in_name_list[len(word_in_name_list) - 1]) 
 
-        date_to_text[date] = [voting_for]
+            parsed_last_name_list = []
+            for last_name in last_name_list:
+                parsed_last_name_list.append(last_name.strip(',.')) 
+        
+        number_voting_for = len(parsed_last_name_list)
+        voting_for = ', '.join(parsed_last_name_list)
+
+        date_to_text[date] = [number_voting_for, voting_for]
         # date_to_text[date] = [voting_for, voting_against]
 
     else:
