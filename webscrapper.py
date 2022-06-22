@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup, NavigableString
 from nltk import tokenize
 import re
 
+date_to_text = {}
 date_to_voting = {}
 
 class WebScrapper():
@@ -94,12 +95,13 @@ class WebScrapper():
                 del self.text[-1]
             self.text = ' '.join(self.text)
 
-            print(date)
-            print(self.text)
-            print('\n')
+            if date not in date_to_text:
+                date_to_text[date] = self.text
 
     def parse_text(self):
         pass
 
 for i in range(2017, 2022):
     webscrapper = WebScrapper(str(i))
+
+print(date_to_text)
