@@ -98,6 +98,3 @@ class WebScrapper():
 
 for i in range(2017, 2022):
     webscrapper = WebScrapper(str(i))
-
-# 2019: 9
-# 2020: 10
