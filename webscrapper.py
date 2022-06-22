@@ -1,76 +1,61 @@
 import requests
 from bs4 import BeautifulSoup
 from nltk import tokenize
+import re
 
-year_to_text = {}
 date_to_voting = {}
 
-def WebScrapper(year):
+class WebScrapper():
 
-    URL = 'https://www.federalreserve.gov/monetarypolicy/fomchistorical' + str(year) + '.htm'
-    page = requests.get(URL)
-    soup = BeautifulSoup(page.content, 'html.parser')
-    fomc_meeting = soup.find(id = 'article').find_all('div', class_ = 'panel panel-default')
+    def __init__(self, year): 
 
-    statement_url_list = []
-    for meeting in fomc_meeting:
-        if 'Meeting' not in meeting.find('h5').get_text():
-            continue
-        for column in meeting.find_all(class_ = 'col-xs-12 col-md-6'):
-            for url in column.find_all('a', href = True):
-                if 'press' in url.get('href'):
-                    statement_url_list.append(url.get('href'))
+        self.URL = 'https://www.federalreserve.gov/monetarypolicy/fomchistorical' + str(year) + '.htm'
+        self.page = requests.get(self.URL)
+        self.soup = BeautifulSoup(self.page.content, 'html.parser')
+        self.statement_url_list = []
+        self.text = ''
 
-    if year not in year_to_text:
-        year_to_text[year] = []
+        self.populate_statement_url_list()
+        self.get_text(year)
 
-    for statement_url in statement_url_list:
+    def populate_statement_url_list(self):        
+        for meeting in self.soup.find(id = 'article').find_all('div', class_ = 'panel panel-default'):
+            if 'Meeting' not in meeting.find('h5').get_text():
+                continue
+            for column in meeting.find_all(class_ = 'col-xs-12 col-md-6'):
+                for url in column.find_all('a', href = True):
+                    if 'press' in url.get('href'):
+                        self.statement_url_list.append(url.get('href'))
 
-        sub_URL = 'https://www.federalreserve.gov/' + statement_url
-        sub_page = requests.get(sub_URL)
-        sub_soup = BeautifulSoup(sub_page.content, 'html.parser')
+    def get_text(self, year):
 
-        date = sub_soup.find('font').get_text().replace('Release Date: ', '')
+        for statement_url in self.statement_url_list:
 
-        text = ''
-        for paragraph in sub_soup.find_all('p'):
-            if paragraph.parent.name == 'td':
-                if paragraph.find_all('p') == []:
-                    text = [paragraph.get_text().replace('  ', ' ')]
-                else:
-                    for p in paragraph.find_all('p'):
-                        if len(p) == 2 or len(p) == 1 and p.get_text() != '\n':
-                            text = tokenize.sent_tokenize(p.get_text())
+            self.sub_URL = 'https://www.federalreserve.gov/' + statement_url
+            self.sub_page = requests.get(self.sub_URL)
+            self.sub_soup = BeautifulSoup(self.sub_page.content, 'html.parser')
 
-        if 'Last update' in text[-1]:
-            del text[-1]
+            date = self.sub_soup.find('font').get_text().replace('Release Date: ', '')
 
-        if (len(text) > 1):
+            for td in self.sub_soup.find_all('td'):
+                self.text = tokenize.sent_tokenize(td.get_text())
+
+            if 'Last update' in self.text[-1]:
+                del self.text[-1]
+
             text_list = []
-            for sub_text in text:
-                text_list.append(sub_text.strip().replace('  ', ' ').rstrip().split('\n'))
-            text = ''
+            regex = re.compile(r'[\n\r\t]')
+            for sub_text in self.text:
+                text_list.append(re.sub(' +', ' ', regex.sub(' ', sub_text).strip()))
+
+            self.text = ''
             for sub_text in text_list:
-                text = text + ' ' + sub_text[0]
-            text = text.replace('  ', '').strip()
-        else:
-            text_list = []
-            text = text[0].split('\r\n')
-            for sub_text in text:
-                text_list.append(sub_text.strip())
-            text = ' '.join(text_list)
+                self.text = self.text + ' ' + sub_text
+            self.text = self.text.strip()
 
-        print(text)
-        print('=========================================')
+            print(date)
+            print(self.text)
+            print('========================================================================================')
 
-        year_to_text[year].append(text)
-
-        if 'Voting for the FOMC' not in text:
-            if date not in date_to_voting:
-                date_to_voting[date] = []
-        else:
-            if date not in date_to_voting:
-                date_to_voting[date] = 'yoooo'
-
-for i in range(1999, 2002):
+for i in range(1999, 2003):
     webscrapper = WebScrapper(str(i))
