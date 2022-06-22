@@ -9,23 +9,45 @@ class WebScrapper():
 
     def __init__(self, year): 
 
-        self.URL = 'https://www.federalreserve.gov/monetarypolicy/fomchistorical' + year + '.htm'
+        if int(year) < 2017:
+            self.URL = 'https://www.federalreserve.gov/monetarypolicy/fomchistorical' + year + '.htm'
+        else:
+            self.URL = 'https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm'
+
         self.page = requests.get(self.URL)
         self.soup = BeautifulSoup(self.page.content, 'html.parser')
         self.statement_url_list = []
         self.text = ''
 
-        self.populate_statement_url_list()
-        self.get_text(year)
+        if int(year) <= 2017:
+            self.populate_statement_url_list(year)
+            self.get_text(year)
 
-    def populate_statement_url_list(self):     
-        for meeting in self.soup.find(id = 'article').find_all('div', class_ = 'panel panel-default'):
-            if 'Meeting' not in meeting.find('h5').get_text():
-                continue
-            for column in meeting.find_all(class_ = 'col-xs-12 col-md-6'):
-                for url in column.find_all('a', href = True):
-                    if 'press' in url.get('href'):
+    def populate_statement_url_list(self, year):
+        if int(year) < 2011:
+            for meeting in self.soup.find(id = 'article').find_all(class_ = 'panel panel-default'):
+                if 'Meeting' not in meeting.find('h5').get_text():
+                    continue
+                for column in meeting.find_all(class_ = 'col-xs-12 col-md-6'):
+                    for url in column.find_all('a', href = True):
+                        if 'press' in url.get('href'):
+                            self.statement_url_list.append(url.get('href'))
+        elif 2011 <= int(year) < 2017:
+            for meeting in self.soup.find(id = 'article').find_all(class_ = 'panel panel-default panel-padded'):
+                if 'Meeting' not in meeting.find('h5').get_text():
+                    continue
+                for column in meeting.find_all(class_ = 'col-xs-12 col-md-6'):
+                    for url in column.find_all('a', href = True):
+                        if 'press' in url.get('href'):
+                            self.statement_url_list.append(url.get('href'))
+        else:
+            for meeting in self.soup.find(id = 'article').find_all(class_ = 'col-xs-12 col-md-4 col-lg-2'):
+                for url in meeting.find_all('a', href = True):
+                    if 'press' in url.get('href') and url.get_text() == 'HTML':
                         self.statement_url_list.append(url.get('href'))
+                        break
+
+        print(self.statement_url_list)
 
     def get_text(self, year):
         for statement_url in self.statement_url_list:
@@ -62,6 +84,11 @@ class WebScrapper():
             if 'For immediate release' in self.text:
                 self.text = self.text.partition('For immediate release ')[2]
 
+            self.text = tokenize.sent_tokenize(self.text)
+            if self.text[-1][-1] != '.':
+                del self.text[-1]
+            self.text = ' '.join(self.text)
+
             print(date)
             print(self.text)
             print('\n')
@@ -69,5 +96,8 @@ class WebScrapper():
     def parse_text(self):
         pass
 
-for i in range(1999, 2017):
+for i in range(2017, 2022):
     webscrapper = WebScrapper(str(i))
+
+# 2019: 9
+# 2020: 10
