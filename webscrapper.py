@@ -102,15 +102,24 @@ for i in range(1999, 2022):
     webscrapper = WebScrapper(str(i))
 
 for date, text in date_to_text.items():
-    if date == 'March 19, 2002':
-        print('reaching')
-        print(text)
-        print('Voting for the ' in text)
     if 'Voting for the ' in text:
         tuple = text.partition('Voting for the ')
         modified_text = tuple[1] + tuple[2]
         tuple = modified_text.partition('Voting against ')
-        date_to_text[date] = [tuple[0].strip(), tuple[1] + tuple[2]]
+
+        voting_for = tuple[0].strip()
+        voting_against = tuple[1] + tuple[2]
+
+        regex = re.compile('Voting for(.*)were')
+        voting_for = regex.sub('Voting for the FOMC monetary policy action were:', voting_for)
+        voting_for = voting_for.replace('::', ':').replace('  ', ' ').replace(', Vice Chairman;', ';').replace(', Vice Chair;', ';').replace(', Chairman;', ';').replace(', Chair;', ';').replace(', Chair,', ';').replace(', Jr.', '').replace(', and', ';').replace(',', ';').replace('; and', ';').strip()
+        voting_for = tokenize.sent_tokenize(voting_for.partition('Voting for the FOMC monetary policy action were: ')[2])[0]
+
+        # voting_for = voting_for.split('; ')
+
+        date_to_text[date] = [voting_for]
+        # date_to_text[date] = [voting_for, voting_against]
+
     else:
         date_to_text[date] = ['', '', '', '', '']
 
