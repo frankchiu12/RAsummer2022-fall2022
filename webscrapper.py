@@ -85,7 +85,7 @@ class WebScrapper():
             self.text = ''
             for sub_text in text_list:
                 self.text = self.text + ' ' + sub_text
-            self.text = self.text.strip()
+            self.text = self.text.replace(u'\xa0', u' ').strip()
 
             if 'For immediate release' in self.text:
                 self.text = self.text.partition('For immediate release ')[2]
@@ -98,10 +98,20 @@ class WebScrapper():
             if date not in date_to_text:
                 date_to_text[date] = self.text
 
-    def parse_text(self):
-        pass
-
-for i in range(2017, 2022):
+for i in range(1999, 2022):
     webscrapper = WebScrapper(str(i))
+
+for date, text in date_to_text.items():
+    if date == 'March 19, 2002':
+        print('reaching')
+        print(text)
+        print('Voting for the ' in text)
+    if 'Voting for the ' in text:
+        tuple = text.partition('Voting for the ')
+        modified_text = tuple[1] + tuple[2]
+        tuple = modified_text.partition('Voting against ')
+        date_to_text[date] = [tuple[0].strip(), tuple[1] + tuple[2]]
+    else:
+        date_to_text[date] = ['', '', '', '', '']
 
 print(date_to_text)
