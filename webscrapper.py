@@ -1,5 +1,5 @@
 import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, NavigableString
 from nltk import tokenize
 import re
 
@@ -41,13 +41,18 @@ class WebScrapper():
                         if 'press' in url.get('href'):
                             self.statement_url_list.append(url.get('href'))
         else:
-            for meeting in self.soup.find(id = 'article').find_all(class_ = 'col-xs-12 col-md-4 col-lg-2'):
-                for url in meeting.find_all('a', href = True):
-                    if 'press' in url.get('href') and url.get_text() == 'HTML':
-                        self.statement_url_list.append(url.get('href'))
-                        break
-
-        print(self.statement_url_list)
+            for meeting_year in self.soup.find(id = 'article').find_all(class_ = 'panel panel-default'):
+                for meeting in meeting_year:
+                    if isinstance(meeting, NavigableString):
+                        continue
+                    if meeting.get('class') == 'panel-heading' or meeting.get('class') == 'panel-footer':
+                        continue
+                    if '(notation value)' in meeting.get_text() or '(unscheduled)' in meeting.get_text():
+                        continue
+                    for url in meeting.find_all('a', href = True):
+                        if 'press' in url.get('href') and url.get_text() == 'HTML':
+                            self.statement_url_list.append(url.get('href'))
+                            break
 
     def get_text(self, year):
         for statement_url in self.statement_url_list:
