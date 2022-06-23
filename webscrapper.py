@@ -3,6 +3,8 @@ from bs4 import BeautifulSoup, NavigableString
 from nltk import tokenize
 import re
 from datetime import datetime
+import spacy
+nlp = spacy.load('en_core_web_md')
 
 date_to_text = {}
 date_to_voting = {}
@@ -148,16 +150,27 @@ for date, text in date_to_text.items():
         if voting_against == 'Voting against the action: none.':
             voting_against = ''
 
+        voting_against_paragraph = voting_against
+
+        paragraph = nlp(voting_against) 
+        voting_against = [x for x in paragraph.ents if x.label_ == 'PERSON']
+
+        print(voting_against)
+
+        last_name_list = []
+        if voting_against != []:
+            for name in voting_against:
+                name = str(name)
+                print(name)
+                word_in_name_list = name.split(' ')
+                if word_in_name_list[len(word_in_name_list) - 1] not in last_name_list:
+                    last_name_list.append(word_in_name_list[len(word_in_name_list) - 1])
+            voting_against = last_name_list
+
         # TODO: change
-        date_to_text[date] = [voting_against]
+        date_to_text[date] = voting_against
 
     else:
-        # TODO: make into a list of 5
-        date_to_text[date] = ['']
-
-# TODO: delete
-for date, text in date_to_text.copy().items():
-    if date_to_text[date] == ['']:
-        date_to_text.pop(date)
+        date_to_text[date] = ['', '', '', '', '']
 
 print(date_to_text)
