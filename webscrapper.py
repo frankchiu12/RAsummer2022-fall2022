@@ -135,10 +135,29 @@ for date, text in date_to_text.items():
         number_voting_for = len(parsed_last_name_list)
         voting_for = ', '.join(parsed_last_name_list)
 
-        date_to_text[date] = [number_voting_for, voting_for]
-        # date_to_text[date] = [voting_for, voting_against]
+        voting_against = voting_against.partition(' In taking')[0].partition('In a related action, the Board of Governors ')[0].partition('1. The Open Market Desk will issue a technical note shortly after the statement providing operational details on how it will carry out these transactions.')[0]
+
+        voting_against = tokenize.sent_tokenize(voting_against)
+
+        voting_against_sentence_list = []
+        for sentence in voting_against:
+            if 'alternate' not in sentence:
+                voting_against_sentence_list.append(sentence)
+        voting_against = ' '.join(voting_against_sentence_list)
+
+        if voting_against == 'Voting against the action: none.':
+            voting_against = ''
+
+        # TODO: change
+        date_to_text[date] = [voting_against]
 
     else:
-        date_to_text[date] = ['', '', '', '', '']
+        # TODO: make into a list of 5
+        date_to_text[date] = ['']
+
+# TODO: delete
+for date, text in date_to_text.copy().items():
+    if date_to_text[date] == ['']:
+        date_to_text.pop(date)
 
 print(date_to_text)
