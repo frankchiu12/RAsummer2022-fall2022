@@ -6,7 +6,7 @@ import numpy as np
 
 class Plot:
 
-    def __init__(self, relative_file_path, statistic, is_growth, has_underscore):
+    def __init__(self, relative_file_path, statistic, statistic_in_words, is_growth, has_underscore):
 
         if (has_underscore):
             self.df = pd.read_excel(relative_file_path).dropna(subset=[statistic + '_3'])
@@ -24,9 +24,9 @@ class Plot:
         else:
             self.data(statistic, is_growth)
         if (is_growth):
-            self.plot(statistic.upper() + ' Annual Growth')
+            self.plot(statistic.upper() + ' Annual Growth', statistic_in_words + ' Annual Growth')
         else:
-            self.plot(statistic.upper())
+            self.plot(statistic.upper(), statistic_in_words)
 
     def data(self, statistic, is_growth):
 
@@ -82,59 +82,69 @@ class Plot:
                 self.percentile_median_list.append(statistic[1])
                 self.percentile_75th_list.append(statistic[2])
 
-    def plot(self, statistic):
+    def plot(self, statistic, statistic_in_words):
 
         # NOTE: dark mode: plt.style.use("dark_background")
         plt.rcParams["figure.figsize"] = [13, 6.5]
         plt.rcParams["figure.autolayout"] = True
-        plt.gcf().canvas.manager.set_window_title(statistic)
-        plt.suptitle(statistic + ' Expectations One Quarter Ahead Plots', fontweight = 'bold', backgroundcolor = 'silver')
+        plt.gcf().canvas.manager.set_window_title(statistic_in_words)
+        plt.suptitle(statistic_in_words + ' Expectations One Quarter Ahead Plots', fontweight = 'bold', backgroundcolor = 'silver')
 
-        for i in range(1, 5):
-            plt.subplot(2, 2, i)
+        for i in range(1, 7):
+            plt.subplot(2, 3, i)
             plt.tight_layout()
+            plt.labelsize = 10
 
-        plt.subplot(2, 2, 1).plot(self.year_quarter_list, self.percentile_25th_list, color = 'red', linewidth = 2)
-        plt.subplot(2, 2, 1).set_title('25th Percentile ' + statistic + ' Expectations One Quarter Ahead', loc = 'left')
-        plt.subplot(2, 2, 2).plot(self.year_quarter_list, self.percentile_median_list, color = 'blue', linewidth = 2)
-        plt.subplot(2, 2, 2).set_title('Median ' + statistic + ' Expectations One Quarter Ahead', loc = 'left')
-        plt.subplot(2, 2, 3).plot(self.year_quarter_list, self.percentile_75th_list, color = 'green', linewidth = 2)
-        plt.subplot(2, 2, 3).set_title('75th Percentile ' + statistic + ' Expectations One Quarter Ahead', loc = 'left')
-        plt.subplot(2, 2, 4).plot(self.year_quarter_list, self.percentile_25th_list, color = 'red', linewidth = 2, label = '25th Percentile')
-        plt.subplot(2, 2, 4).plot(self.year_quarter_list, self.percentile_median_list, color = 'blue', linewidth = 2, label = 'Median')
-        plt.subplot(2, 2, 4).plot(self.year_quarter_list, self.percentile_75th_list, color = 'green', linewidth = 2, label = '75th Percentile')
-        plt.subplot(2, 2, 4).set_title('Comparison of ' + statistic + ' Expectations One Quarter Ahead', loc = 'left')
-        plt.subplot(2, 2, 4).legend(loc = 'upper right')
+        plt.subplot(2, 3, 1).plot(self.year_quarter_list, self.percentile_25th_list, color = 'red', linewidth = 2, linestyle = 'dashed')
+        plt.subplot(2, 3, 1).set_title('25th Percentile', loc = 'left')
 
-        for i in range(1, 5):
-            plt.subplot(2, 2, i).set_xlabel('YEAR-QUARTER')
-            plt.subplot(2, 2, i).xaxis.labelpad = 10
-            plt.subplot(2, 2, i).set_ylabel(statistic)
-            plt.subplot(2, 2, i).set_xticks(self.year_quarter_list[::16])
-            plt.subplot(2, 2, i).set_xticklabels(self.year_quarter_list[::16], rotation = 45)
-            plt.subplot(2, 2, i).yaxis.set_major_locator(MaxNLocator(nbins = 6, integer = True))
+        plt.subplot(2, 3, 2).plot(self.year_quarter_list, self.percentile_median_list, color = 'blue', linewidth = 2)
+        plt.subplot(2, 3, 2).set_title('Median', loc = 'left')
+
+        plt.subplot(2, 3, 3).plot(self.year_quarter_list, self.percentile_75th_list, color = 'green', linewidth = 2, linestyle = 'dashed')
+        plt.subplot(2, 3, 3).set_title('75th Percentile', loc = 'left')
+
+        plt.subplot(2, 3, 4).plot(self.year_quarter_list, self.percentile_25th_list, color = 'red', linewidth = 2, linestyle = 'dashed', label = '25th Percentile')
+        plt.subplot(2, 3, 4).plot(self.year_quarter_list, self.percentile_median_list, color = 'blue', linewidth = 2, label = 'Median')
+        plt.subplot(2, 3, 4).plot(self.year_quarter_list, self.percentile_75th_list, color = 'green', linewidth = 2, linestyle = 'dashed', label = '75th Percentile')
+        plt.subplot(2, 3, 4).set_title('Comparison', loc = 'left')
+        plt.subplot(2, 3, 4).legend(loc = 'upper right')
+
+        plt.subplot(2, 3, 5).plot(self.year_quarter_list, list(np.subtract(self.percentile_75th_list, self.percentile_25th_list)), color = 'purple', linewidth = 2, linestyle = 'dotted')
+        plt.subplot(2, 3, 5).set_title('IQR', loc = 'left')
+
+        plt.subplot(2, 3, 6).plot(self.year_quarter_list, [i / j for i, j in zip(list(np.subtract(self.percentile_75th_list, self.percentile_25th_list)), self.percentile_25th_list)], color = 'pink', linewidth = 2, linestyle = 'dotted')
+        plt.subplot(2, 3, 6).set_title('IQR (weighted)', loc = 'left')
+
+        for i in range(1, 7):
+            plt.subplot(2, 3, i).set_xlabel('YEAR-QUARTER', fontsize = 9)
+            plt.subplot(2, 3, i).xaxis.labelpad = 10
+            plt.subplot(2, 3, i).set_ylabel(statistic_in_words, fontsize = 9)
+            plt.subplot(2, 3, i).set_xticks(self.year_quarter_list[::16])
+            plt.subplot(2, 3, i).set_xticklabels(self.year_quarter_list[::16], rotation = 45)
+            plt.subplot(2, 3, i).yaxis.set_major_locator(MaxNLocator(nbins = 6, integer = True))
 
         plt.show()
 
 try:
     os.system('cls' if os.name == 'nt' else 'clear')
     # RGDP
-    Plot('spf_plot_data/Individual_RGDP.xlsx', 'RGDP', False, False)
+    Plot('spf_plot_data/Individual_RGDP.xlsx', 'RGDP', 'RGDP', False, False)
     # RGDP Growth
-    Plot('spf_plot_data/Individual_RGDP.xlsx', 'RGDP', True, False)
+    Plot('spf_plot_data/Individual_RGDP.xlsx', 'RGDP', 'RGDP', True, False)
     # PRGDP
-    Plot('spf_plot_data/Individual_PRGDP.xlsx', 'PRGDP', False, False)
+    Plot('spf_plot_data/Individual_PRGDP.xlsx', 'PRGDP', 'Probability of RGDP Change', False, False)
     # CPI
-    Plot('spf_plot_data/Individual_CPI.xlsx', 'CPI', False, False)
+    Plot('spf_plot_data/Individual_CPI.xlsx', 'CPI', 'CPI', False, False)
     # CORECPI
-    Plot('spf_plot_data/Individual_CORECPI.xlsx', 'CORECPI', False, False)
+    Plot('spf_plot_data/Individual_CORECPI.xlsx', 'CORECPI', 'CORECPI', False, False)
     # PCE
-    Plot('spf_plot_data/Individual_PCE.xlsx', 'PCE', False, False)
+    Plot('spf_plot_data/Individual_PCE.xlsx', 'PCE', 'PCE', False, False)
     # COREPCE
-    Plot('spf_plot_data/Individual_COREPCE.xlsx', 'COREPCE', False, False)
+    Plot('spf_plot_data/Individual_COREPCE.xlsx', 'COREPCE', 'COREPCE', False, False)
     # RR1_TBILL_PGDP
-    Plot('spf_plot_data/Individual_RR1_TBILL_PGDP.xlsx', 'RR1_TBILL_PGDP', False, True)
+    Plot('spf_plot_data/Individual_RR1_TBILL_PGDP.xlsx', 'RR1_TBILL_PGDP', 'Deflated 3-Month Treasury Bill', False, True)
     # SPR_TBOND_TBILL
-    Plot('spf_plot_data/Individual_SPR_TBOND_TBILL.xlsx', 'SPR_Tbond_Tbill', False, False)
+    Plot('spf_plot_data/Individual_SPR_TBOND_TBILL.xlsx', 'SPR_Tbond_Tbill', '10-Year Treasury Bond Yield Spread', False, False)
 except:
     pass
