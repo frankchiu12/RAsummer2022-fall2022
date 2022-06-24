@@ -5,6 +5,10 @@ import re
 from datetime import datetime
 import spacy
 nlp = spacy.load('en_core_web_md')
+import pygsheets
+from pygsheets.datarange import DataRange
+
+sheet = pygsheets.authorize(service_account_file = 'write_into_google_sheet.json').open('Summer RA')
 
 date_to_text = {}
 date_to_voting = {}
@@ -78,7 +82,12 @@ class WebScrapper():
                     self.text = tokenize.sent_tokenize(article.get_text())
 
             if 'Last update: ' in self.text[-1]:
-                del self.text[-1]
+                if 'Jr.\r' in self.text[-1]:
+                    self.text[-1] = self.text[-1].partition('Jr.\r')[0] + self.text[-1].partition('Jr.\r')[1]
+                elif 'Jr. \r' in self.text[-1]:
+                    self.text[-1] = self.text[-1].partition('Jr. \r')[0] + self.text[-1].partition('Jr. \r')[1]
+                else:
+                    del self.text[-1]
 
             text_list = []
             regex = re.compile(r'[\n\r\t]')
@@ -99,7 +108,10 @@ class WebScrapper():
             self.text = ' '.join(self.text)
 
             if self.convert_date(date) not in date_to_text:
-                date_to_text[self.convert_date(date)] = self.text
+                if self.convert_date(date) == '03/23/2020':
+                    date_to_text['03/18/2020'] = self.text
+                else:
+                    date_to_text[self.convert_date(date)] = self.text
 
     def convert_date(self, date):
         return datetime.strptime(date, '%B %d, %Y').strftime('%m/%d/%Y')
@@ -133,7 +145,7 @@ for date, text in date_to_text.items():
             parsed_last_name_list = []
             for last_name in last_name_list:
                 parsed_last_name_list.append(last_name.strip(',.')) 
-        
+
         number_voting_for = len(parsed_last_name_list)
         voting_for = ', '.join(parsed_last_name_list)
 
@@ -155,22 +167,52 @@ for date, text in date_to_text.items():
         paragraph = nlp(voting_against) 
         voting_against = [x for x in paragraph.ents if x.label_ == 'PERSON']
 
-        print(voting_against)
-
         last_name_list = []
         if voting_against != []:
             for name in voting_against:
                 name = str(name)
-                print(name)
                 word_in_name_list = name.split(' ')
                 if word_in_name_list[len(word_in_name_list) - 1] not in last_name_list:
                     last_name_list.append(word_in_name_list[len(word_in_name_list) - 1])
-            voting_against = last_name_list
+            voting_against = ', '.join(last_name_list)
+        else:
+            voting_against = ''
+        if voting_against == '':
+            number_voting_against = 0
+        else:
+            number_voting_against = len(voting_against.split(', '))
 
-        # TODO: change
-        date_to_text[date] = voting_against
+        date_to_text[date] = [number_voting_for, number_voting_against, voting_for, voting_against, voting_against_paragraph]
 
     else:
         date_to_text[date] = ['', '', '', '', '']
 
-print(date_to_text)
+date_list = ['FOMC Statement Release Date']
+number_voting_for_list = ['Number of Members Voting in Favor']
+number_voting_against_list = ['Number of Members Not in Favor']
+voting_for_list= ['Names in Favor']
+voting_against_list = ['Names Not in Favor']
+voting_against_paragraph_list = ['Reason for Dissent']
+
+for date, text in date_to_text.items():
+    date_list.append(date)
+    number_voting_for_list.append(text[0])
+    number_voting_against_list.append(text[1])
+    voting_for_list.append(text[2])
+    voting_against_list.append(text[3])
+    voting_against_paragraph_list.append(text[4])
+
+try:
+    FOMC_info_release_sheet = sheet.add_worksheet('fomc_info_release', rows = 187, cols = 6)
+    FOMC_info_release_sheet.update_col(1, date_list)
+    FOMC_info_release_sheet.update_col(2, number_voting_for_list)
+    FOMC_info_release_sheet.update_col(3, number_voting_against_list)
+    FOMC_info_release_sheet.update_col(4, voting_for_list)
+    FOMC_info_release_sheet.update_col(5, voting_against_list)
+    FOMC_info_release_sheet.update_col(6, voting_against_paragraph_list)
+    FOMC_info_release_sheet.sort_range(start = 'A2', end = 'F187', basecolumnindex = 0, sortorder = 'ASCENDING')
+    bold = FOMC_info_release_sheet.cell('A1')
+    bold.set_text_format('bold', True)
+    DataRange('A1','F1', worksheet = FOMC_info_release_sheet).apply_format(bold)
+except:
+    pass
