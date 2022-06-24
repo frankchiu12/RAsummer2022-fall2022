@@ -6,27 +6,25 @@ import numpy as np
 
 class Plot:
 
-    def __init__(self, relative_file_path, statistic, statistic_in_words, is_growth, has_underscore):
+    def __init__(self, relative_file_path, statistic, statistic_in_words, is_growth):
 
-        if (has_underscore):
-            self.df = pd.read_excel(relative_file_path).dropna(subset=[statistic + '_3'])
-        else:
-            self.df = pd.read_excel(relative_file_path).dropna(subset=[statistic + '3'])
-        self.year_list = self.df.YEAR.unique()
+        self.df3 = pd.read_excel(relative_file_path).dropna(subset=[statistic + '3'])
+        if is_growth:
+            self.df2 = pd.read_excel(relative_file_path).dropna(subset=[statistic + '2'])
+
+        self.year_list = self.df3.YEAR.unique()
         self.quarter_list = [1, 2, 3, 4]
         self.year_to_quarter_to_statistic = {}
         self.year_quarter_list = []
         self.percentile_25th_list = []
         self.percentile_median_list = []
         self.percentile_75th_list = []
-        if (has_underscore):
-            self.data(statistic + '_', is_growth)
-        else:
-            self.data(statistic, is_growth)
+
+        self.data(statistic, is_growth)
         if (is_growth):
-            self.plot(statistic.upper() + ' Annual Growth', statistic_in_words + ' Annual Growth')
+            self.plot(statistic, statistic_in_words + ' Annualized Growth')
         else:
-            self.plot(statistic.upper(), statistic_in_words)
+            self.plot(statistic, statistic_in_words)
 
     def data(self, statistic, is_growth):
 
@@ -35,16 +33,35 @@ class Plot:
                 self.year_to_quarter_to_statistic[year] = {}
             for quarter in self.quarter_list:
                 if quarter not in self.year_to_quarter_to_statistic[year]:
-                    self.year_to_quarter_to_statistic[year][quarter] = self.df.loc[self.df['YEAR'].eq(year) & self.df['QUARTER'].eq(quarter)][statistic + '3'].tolist()
+                    self.year_to_quarter_to_statistic[year][quarter] = self.df3.loc[self.df3['YEAR'].eq(year) & self.df3['QUARTER'].eq(quarter)][statistic + '3'].tolist()
 
-        for year in self.year_to_quarter_to_statistic:
-            for quarter in self.year_to_quarter_to_statistic[year]:
-                statistics_list = []
-                if len(self.year_to_quarter_to_statistic[year][quarter]) > 0:
-                    statistics_list.append(np.percentile(self.year_to_quarter_to_statistic[year][quarter], 25))
-                    statistics_list.append(np.percentile(self.year_to_quarter_to_statistic[year][quarter], 50))
-                    statistics_list.append(np.percentile(self.year_to_quarter_to_statistic[year][quarter], 75))
-                self.year_to_quarter_to_statistic[year][quarter] = statistics_list
+        if (not is_growth):
+            for year in self.year_to_quarter_to_statistic:
+                for quarter in self.year_to_quarter_to_statistic[year]:
+                    statistics_list = []
+                    if len(self.year_to_quarter_to_statistic[year][quarter]) > 0:
+                        statistics_list.append(np.percentile(self.year_to_quarter_to_statistic[year][quarter], 25))
+                        statistics_list.append(np.percentile(self.year_to_quarter_to_statistic[year][quarter], 50))
+                        statistics_list.append(np.percentile(self.year_to_quarter_to_statistic[year][quarter], 75))
+                    self.year_to_quarter_to_statistic[year][quarter] = statistics_list
+        else:
+            previous_year_to_quarter_to_statistic = {}
+
+            for year in self.year_list:
+                if year not in previous_year_to_quarter_to_statistic:
+                    previous_year_to_quarter_to_statistic[year] = {}
+                for quarter in self.quarter_list:
+                    if quarter not in previous_year_to_quarter_to_statistic[year]:
+                        previous_year_to_quarter_to_statistic[year][quarter] = self.df2.loc[self.df2['YEAR'].eq(year) & self.df2['QUARTER'].eq(quarter)][statistic + '2'].tolist()
+
+            for year in self.year_to_quarter_to_statistic:
+                for quarter in self.year_to_quarter_to_statistic[year]:
+                    statistics_list = []
+                    if len(self.year_to_quarter_to_statistic[year][quarter]) > 0 and len(self.year_to_quarter_to_statistic[year][quarter]) > 0:
+                        statistics_list.append(100 * ((np.percentile(self.year_to_quarter_to_statistic[year][quarter], 25)/np.percentile(previous_year_to_quarter_to_statistic[year][quarter], 25)) ** 4 - 1))
+                        statistics_list.append(100 * ((np.percentile(self.year_to_quarter_to_statistic[year][quarter], 50)/np.percentile(previous_year_to_quarter_to_statistic[year][quarter], 50)) ** 4 - 1))
+                        statistics_list.append(100 * ((np.percentile(self.year_to_quarter_to_statistic[year][quarter], 75)/np.percentile(previous_year_to_quarter_to_statistic[year][quarter], 75)) ** 4 - 1))
+                    self.year_to_quarter_to_statistic[year][quarter] = statistics_list
 
         year_quarter_to_statistic = {}
         for year in self.year_to_quarter_to_statistic:
@@ -53,34 +70,11 @@ class Plot:
                     if len(self.year_to_quarter_to_statistic[year][quarter]) > 0:
                         year_quarter_to_statistic[str(int(year)) + '-' + str(quarter)] = self.year_to_quarter_to_statistic[year][quarter]
 
-        if is_growth:
-            year_quarter_to_statistic_copy = year_quarter_to_statistic.copy()
-            year_quarter_to_pop_list = []
-            for year_quarter, statistic in year_quarter_to_statistic_copy.items():
-                past_year_int = int(year_quarter[:4]) - 1
-                past_year_quarter = str(past_year_int) + year_quarter[4:]
-                if past_year_quarter in year_quarter_to_statistic:
-                    year_quarter_to_statistic_copy[year_quarter] = [(year_quarter_to_statistic[year_quarter][0] - year_quarter_to_statistic[past_year_quarter][0])/year_quarter_to_statistic[past_year_quarter][0], (year_quarter_to_statistic[year_quarter][1] - year_quarter_to_statistic[past_year_quarter][1])/year_quarter_to_statistic[past_year_quarter][1], (year_quarter_to_statistic[year_quarter][2] - year_quarter_to_statistic[past_year_quarter][2])/year_quarter_to_statistic[past_year_quarter][2]]
-                else:
-                    year_quarter_to_pop_list.append(year_quarter)
-
-            for year_quarter in year_quarter_to_pop_list:
-                year_quarter_to_statistic_copy.pop(year_quarter)
-
-            year_quarter_to_statistic = year_quarter_to_statistic_copy
-
-            for year_quarter, statistic in year_quarter_to_statistic.items():
-                self.year_quarter_list.append(year_quarter)
-                self.percentile_25th_list.append(statistic[0])
-                self.percentile_median_list.append(statistic[1])
-                self.percentile_75th_list.append(statistic[2])
-
-        else:
-            for year_quarter, statistic in year_quarter_to_statistic.items():
-                self.year_quarter_list.append(year_quarter)
-                self.percentile_25th_list.append(statistic[0])
-                self.percentile_median_list.append(statistic[1])
-                self.percentile_75th_list.append(statistic[2])
+        for year_quarter, statistic in year_quarter_to_statistic.items():
+            self.year_quarter_list.append(year_quarter)
+            self.percentile_25th_list.append(statistic[0])
+            self.percentile_median_list.append(statistic[1])
+            self.percentile_75th_list.append(statistic[2])
 
     def plot(self, statistic, statistic_in_words):
 
@@ -129,22 +123,22 @@ class Plot:
 try:
     os.system('cls' if os.name == 'nt' else 'clear')
     # RGDP
-    Plot('spf_plot_data/Individual_RGDP.xlsx', 'RGDP', 'RGDP', False, False)
+    Plot('spf_plot_data/Individual_RGDP.xlsx', 'RGDP', 'RGDP', False)
     # RGDP Growth
-    Plot('spf_plot_data/Individual_RGDP.xlsx', 'RGDP', 'RGDP', True, False)
+    Plot('spf_plot_data/Individual_RGDP.xlsx', 'RGDP', 'RGDP', True)
     # PRGDP
-    Plot('spf_plot_data/Individual_PRGDP.xlsx', 'PRGDP', 'Probability of RGDP Change', False, False)
+    Plot('spf_plot_data/Individual_PRGDP.xlsx', 'PRGDP', 'Probability of RGDP Change', False)
     # CPI
-    Plot('spf_plot_data/Individual_CPI.xlsx', 'CPI', 'CPI', False, False)
+    Plot('spf_plot_data/Individual_CPI.xlsx', 'CPI', 'CPI', False)
     # CORECPI
-    Plot('spf_plot_data/Individual_CORECPI.xlsx', 'CORECPI', 'CORECPI', False, False)
+    Plot('spf_plot_data/Individual_CORECPI.xlsx', 'CORECPI', 'CORECPI', False)
     # PCE
-    Plot('spf_plot_data/Individual_PCE.xlsx', 'PCE', 'PCE', False, False)
+    Plot('spf_plot_data/Individual_PCE.xlsx', 'PCE', 'PCE', False)
     # COREPCE
-    Plot('spf_plot_data/Individual_COREPCE.xlsx', 'COREPCE', 'COREPCE', False, False)
+    Plot('spf_plot_data/Individual_COREPCE.xlsx', 'COREPCE', 'COREPCE', False)
     # RR1_TBILL_PGDP
-    Plot('spf_plot_data/Individual_RR1_TBILL_PGDP.xlsx', 'RR1_TBILL_PGDP', 'Deflated 3-Month Treasury Bill', False, True)
+    Plot('spf_plot_data/Individual_RR1_TBILL_PGDP.xlsx', 'RR1_TBILL_PGDP_', 'Deflated 3-Month Treasury Bill', False)
     # SPR_TBOND_TBILL
-    Plot('spf_plot_data/Individual_SPR_TBOND_TBILL.xlsx', 'SPR_Tbond_Tbill', '10-Year Treasury Bond Yield Spread', False, False)
+    Plot('spf_plot_data/Individual_SPR_TBOND_TBILL.xlsx', 'SPR_Tbond_Tbill', '10-Year Treasury Bond Yield Spread', False)
 except:
     pass
