@@ -42,18 +42,22 @@ gPCPI_list = gPCPI[1]
 random_list = []
 taylor_1993_list = []
 taylor_1999_list = []
+inertial_taylor_1999_list = []
+first_difference_list = []
 
 for i in range(len(gPCPI_list)):
     random_list.append(random.randint(1,30))
     taylor_1993_list.append(taylor_1993_equation(gPCPI_list[i], random_list[i]))
     taylor_1999_list.append(taylor_1999_equation(gPCPI_list[i], random_list[i]))
+    inertial_taylor_1999_list.append(inertial_taylor_1999_equation(gPCPI_list[i], random_list[i], random_list[i]))
 
 plt.rcParams["figure.figsize"] = [12, 6]
 plt.rcParams["figure.autolayout"] = True
 plt.gcf().canvas.manager.set_window_title('FOMC Rules')
 plt.plot(year_quarter_list, taylor_1993_list, color = 'red', linewidth = 2, label = 'Taylor 1993 Rule')
 plt.plot(year_quarter_list, taylor_1999_list, color = 'blue', linewidth = 2, label = 'Taylor 1999 Rule')
-plt.title('Comparison of FOMC Rules', fontweight = 'bold', backgroundcolor = 'silver')
+plt.plot(year_quarter_list, inertial_taylor_1999_list, color = 'green', linewidth = 2, label = 'Inertial Taylor 1999 Rule')
+plt.title('Comparison of Projected FFR by FOMC Rules', fontweight = 'bold', backgroundcolor = 'silver')
 plt.xlabel('YEAR_QUARTER')
 plt.ylabel('ESTIMATED FFR')
 plt.xticks(year_quarter_list[::8], rotation = 45)
