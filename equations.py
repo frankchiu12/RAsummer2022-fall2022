@@ -1,3 +1,29 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+import random
+
+class Equation():
+
+    def __init__(self, relative_file_path, statistic):
+        xls = pd.ExcelFile(relative_file_path)
+        self.df = pd.read_excel(xls, statistic).dropna(subset=[statistic + 'F1'])
+        self.year_list = self.df.DATE.unique()
+        self.year_quarter_to_statistic = {}
+
+    def data(self, statistic):
+        for year_quarter in self.year_list:
+            if '-'.join(str(year_quarter).split('.')) not in self.year_quarter_to_statistic:
+               self.year_quarter_to_statistic['-'.join(str(year_quarter).split('.'))] = np.mean(self.df.loc[self.df['DATE'].eq(year_quarter)][statistic + 'F1'].tolist())
+
+        year_quarter_list = []
+        statistic_list = []
+        for year_quarter, mean in self.year_quarter_to_statistic.items():
+            year_quarter_list.append(year_quarter)
+            statistic_list.append(mean)
+
+        return year_quarter_list, statistic_list
+
 def taylor_1993_equation(inflation, output_gap):
     return 1.25 + inflation + 0.5 * (inflation - 2) + 0.5 * output_gap
 
@@ -9,3 +35,28 @@ def inertial_taylor_1999_equation(inflation, output_gap, prev_ffr):
 
 def first_difference_rule_equation(prev_ffr, three_quarter_ahead_inflation, three_quarter_ahead_change_in_output_gap):
     return prev_ffr + 0.5 * (three_quarter_ahead_inflation - 2) + 0.5 * (three_quarter_ahead_change_in_output_gap)
+
+gPCPI = Equation('GBweb_Row_Format.xlsx', 'gPCPI').data('gPCPI')
+year_quarter_list = gPCPI[0]
+gPCPI_list = gPCPI[1]
+random_list = []
+taylor_1993_list = []
+taylor_1999_list = []
+
+for i in range(len(gPCPI_list)):
+    random_list.append(random.randint(1,30))
+    taylor_1993_list.append(taylor_1993_equation(gPCPI_list[i], random_list[i]))
+    taylor_1999_list.append(taylor_1999_equation(gPCPI_list[i], random_list[i]))
+
+plt.rcParams["figure.figsize"] = [12, 6]
+plt.rcParams["figure.autolayout"] = True
+plt.gcf().canvas.manager.set_window_title('FOMC Rules')
+plt.plot(year_quarter_list, taylor_1993_list, color = 'red', linewidth = 2, label = 'Taylor 1993 Rule')
+plt.plot(year_quarter_list, taylor_1999_list, color = 'blue', linewidth = 2, label = 'Taylor 1999 Rule')
+plt.title('Comparison of FOMC Rules', fontweight = 'bold', backgroundcolor = 'silver')
+plt.xlabel('YEAR_QUARTER')
+plt.ylabel('ESTIMATED FFR')
+plt.xticks(year_quarter_list[::8], rotation = 45)
+plt.legend(loc = 'upper right')
+
+plt.show()
