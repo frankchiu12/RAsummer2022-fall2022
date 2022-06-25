@@ -4,7 +4,7 @@ import pygsheets
 from pygsheets.datarange import DataRange
 
 read_file = pd.read_csv ('HISTDATA.TXT')
-read_file.to_csv ('/Users/franksi-unchiu/Desktop/cs200python/RAsummer2022/histdata.csv', index = None)
+read_file.to_csv('/Users/franksi-unchiu/Desktop/cs200python/RAsummer2022/histdata.csv', index = None)
 df = pd.read_csv('/Users/franksi-unchiu/Desktop/cs200python/RAsummer2022/histdata.csv')
 root: et.Element = et.parse('pyfrbus_package/models/model.xml').getroot()
 all_variable: et.ElementTree = root.findall("variable")
@@ -15,13 +15,14 @@ equation_type_list = ['Equation Type']
 sector_list = ['Sector']
 definition_list = ['Definition']
 has_expectations_data_list = ['Has Expectations Data']
+
 for variable in all_variable:
     name = variable.find('name').text
     equation_type = ''
     sector = ''
     definition = ''
-    description = ''
     has_expectations_data = 'false'
+
     if variable.find('equation_type') is not None:
         equation_type = variable.find('equation_type').text
     if variable.find('sector') is not None:
