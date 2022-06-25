@@ -14,7 +14,7 @@ class Equation():
     def data(self, statistic):
         for year_quarter in self.year_list:
             if '-'.join(str(year_quarter).split('.')) not in self.year_quarter_to_statistic:
-               self.year_quarter_to_statistic['-'.join(str(year_quarter).split('.'))] = np.mean(self.df.loc[self.df['DATE'].eq(year_quarter)][statistic + 'F1'].tolist())
+                self.year_quarter_to_statistic['-'.join(str(year_quarter).split('.'))] = np.mean(self.df.loc[self.df['DATE'].eq(year_quarter)][statistic + 'F1'].tolist())
 
         year_quarter_list = []
         statistic_list = []
