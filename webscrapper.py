@@ -213,7 +213,7 @@ for date, text in date_to_text.items():
     voting_against_paragraph_list.append(text[4])
 
 try:
-    FOMC_info_release_sheet = sheet.add_worksheet('fomc_info_release', rows = 300, cols = 6)
+    FOMC_info_release_sheet = sheet.add_worksheet('fomc_info_release', rows = 187, cols = 6)
     FOMC_info_release_sheet.update_col(1, date_list)
     FOMC_info_release_sheet.update_col(2, number_voting_for_list)
     FOMC_info_release_sheet.update_col(3, number_voting_against_list)
