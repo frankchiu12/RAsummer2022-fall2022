@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup, NavigableString
-from nltk import tokenize
 import re
+from nltk import tokenize
 from datetime import datetime
 import spacy
 nlp = spacy.load('en_core_web_md')
@@ -9,13 +9,13 @@ import pygsheets
 from pygsheets.datarange import DataRange
 
 sheet = pygsheets.authorize(service_account_file = 'write_into_google_sheet.json').open('Summer RA')
-
 date_to_text = {}
 date_to_voting = {}
 
 class WebScrapper():
 
     def __init__(self, year): 
+
         if int(year) < 2017:
             self.URL = 'https://www.federalreserve.gov/monetarypolicy/fomchistorical' + year + '.htm'
         else:
@@ -59,7 +59,6 @@ class WebScrapper():
                     for url in meeting.find_all('a', href = True):
                         if 'press' in url.get('href') and url.get_text() == 'HTML':
                             self.statement_url_list.append(url.get('href'))
-                            break
 
     def get_text(self, year):
         for statement_url in self.statement_url_list:
@@ -68,7 +67,7 @@ class WebScrapper():
                 self.sub_page = requests.get(self.sub_URL)
                 self.sub_soup = BeautifulSoup(self.sub_page.content, 'html.parser')
                 date = self.sub_soup.find('font').get_text().replace('Release Date: ', '')
-
+                # split into list ofsentences
                 for td in self.sub_soup.find_all('td'):
                     self.text = tokenize.sent_tokenize(td.get_text())
             else: 
@@ -76,11 +75,13 @@ class WebScrapper():
                 self.sub_page = requests.get(self.sub_URL)
                 self.sub_soup = BeautifulSoup(self.sub_page.content, 'html.parser')
                 date = self.sub_soup.find(class_ = 'article__time').get_text().replace('Release Date: ', '')
-
+                # split into list of sentences
                 for article in self.sub_soup.find_all(class_ = 'col-xs-12 col-sm-8 col-md-8'):
                     self.text = tokenize.sent_tokenize(article.get_text())
 
+            # if it is post-article text, remove that sentence
             if 'Last update: ' in self.text[-1]:
+                # deals with edge case of Jr. + (sth) being considered one sentence
                 if 'Jr.\r' in self.text[-1]:
                     self.text[-1] = self.text[-1].partition('Jr.\r')[0] + self.text[-1].partition('Jr.\r')[1]
                 elif 'Jr. \r' in self.text[-1]:
@@ -88,19 +89,23 @@ class WebScrapper():
                 else:
                     del self.text[-1]
 
+            # append the list of sentences to remove \n\r\t
             text_list = []
             regex = re.compile(r'[\n\r\t]')
             for sub_text in self.text:
                 text_list.append(re.sub(' +', ' ', regex.sub(' ', sub_text).strip()))
 
+            # join the list of sentences together into a paragraph
             self.text = ''
             for sub_text in text_list:
                 self.text = self.text + ' ' + sub_text
             self.text = self.text.replace(u'\xa0', u' ').strip()
 
+            # remove header
             if 'For immediate release' in self.text:
                 self.text = self.text.partition('For immediate release ')[2]
 
+            # remove sentences that don't end with a period
             self.text = tokenize.sent_tokenize(self.text)
             if self.text[-1][-1] != '.':
                 del self.text[-1]
@@ -127,18 +132,22 @@ for date, text in date_to_text.items():
         voting_for = tuple[0].strip()
         voting_against = tuple[1] + tuple[2]
 
+        # universalize the beginning to 'Voting for the FOMC monetary policy action were:'
         regex = re.compile('Voting for(.*)were')
         voting_for = regex.sub('Voting for the FOMC monetary policy action were:', voting_for)
+        # bunch of replacements
         voting_for = voting_for.replace('::', ':').replace('  ', ' ').replace(', Vice Chairman;', ';').replace(', Vice Chair;', ';').replace(', Chairman;', ';').replace(', Chair;', ';').replace(', Chair,', ';').replace(', Jr.', '').replace(', and', ';').replace(',', ';').replace('; and', ';').strip()
+        # remove the beginning
         voting_for = tokenize.sent_tokenize(voting_for.partition('Voting for the FOMC monetary policy action were: ')[2])[0]
 
+        # get last names
         last_name_list = []
         voting_for = voting_for.split('; ')
         for name in voting_for:
             word_in_name_list = name.split(' ')
             if '' in word_in_name_list:
                 word_in_name_list.remove('')
-            
+
             last_name_list.append(word_in_name_list[len(word_in_name_list) - 1]) 
 
             parsed_last_name_list = []
@@ -148,10 +157,11 @@ for date, text in date_to_text.items():
         number_voting_for = len(parsed_last_name_list)
         voting_for = ', '.join(parsed_last_name_list)
 
+        # remove unnecessary endings
         voting_against = voting_against.partition(' In taking')[0].partition('In a related action, the Board of Governors ')[0].partition('1. The Open Market Desk will issue a technical note shortly after the statement providing operational details on how it will carry out these transactions.')[0]
-
+        # split into sentences
         voting_against = tokenize.sent_tokenize(voting_against)
-
+        # remove sentences that include the word alternate
         voting_against_sentence_list = []
         for sentence in voting_against:
             if 'alternate' not in sentence:
@@ -161,16 +171,17 @@ for date, text in date_to_text.items():
         if voting_against == 'Voting against the action: none.':
             voting_against = ''
 
+        # save the paragraph
         voting_against_paragraph = voting_against
 
-        paragraph = nlp(voting_against) 
-        voting_against = [x for x in paragraph.ents if x.label_ == 'PERSON']
+        # parse to get names
+        voting_against = [x for x in nlp(voting_against).ents if x.label_ == 'PERSON']
 
+        # get last names
         last_name_list = []
         if voting_against != []:
             for name in voting_against:
-                name = str(name)
-                word_in_name_list = name.split(' ')
+                word_in_name_list = str(name).split(' ')
                 if word_in_name_list[len(word_in_name_list) - 1] not in last_name_list:
                     last_name_list.append(word_in_name_list[len(word_in_name_list) - 1])
             voting_against = ', '.join(last_name_list)
@@ -202,7 +213,7 @@ for date, text in date_to_text.items():
     voting_against_paragraph_list.append(text[4])
 
 try:
-    FOMC_info_release_sheet = sheet.add_worksheet('fomc_info_release', rows = 187, cols = 6)
+    FOMC_info_release_sheet = sheet.add_worksheet('fomc_info_release', rows = 300, cols = 6)
     FOMC_info_release_sheet.update_col(1, date_list)
     FOMC_info_release_sheet.update_col(2, number_voting_for_list)
     FOMC_info_release_sheet.update_col(3, number_voting_against_list)
