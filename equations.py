@@ -54,12 +54,12 @@ for i in range(len(gPCPI_list)):
 
 plt.rcParams["figure.figsize"] = [12, 6]
 plt.rcParams["figure.autolayout"] = True
-plt.gcf().canvas.manager.set_window_title('FOMC Rules')
+plt.gcf().canvas.manager.set_window_title('FOMC Equations')
 plt.plot(year_quarter_list, taylor_1993_list, color = 'red', linewidth = 2, label = 'Taylor 1993 Rule')
 plt.plot(year_quarter_list, taylor_1999_list, color = 'blue', linewidth = 2, label = 'Taylor 1999 Rule')
 plt.plot(year_quarter_list, inertial_taylor_1999_list, color = 'green', linewidth = 2, label = 'Inertial Taylor 1999 Rule')
 plt.plot(year_quarter_list, first_difference_list, color = 'purple', linewidth = 2, label = 'First Difference Rule')
-plt.title('Comparison of Projected FFR by FOMC Rules', fontweight = 'bold', backgroundcolor = 'silver')
+plt.title('Comparison of Projected FFR by FOMC Equations', fontweight = 'bold', backgroundcolor = 'silver')
 plt.xlabel('YEAR_QUARTER')
 plt.ylabel('ESTIMATED FFR')
 plt.xticks(year_quarter_list[::8], rotation = 45)
