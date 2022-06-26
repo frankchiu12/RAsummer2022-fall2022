@@ -67,3 +67,5 @@ plt.xlabel('YEAR')
 plt.ylabel('FOMC EQUATION')
 addlabel(begin_list, end_list)
 plt.show()
+
+# TODO: clean up code
