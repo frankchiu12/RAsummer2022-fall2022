@@ -10,8 +10,6 @@ begin_time_list = []
 for date in begin_list:
     begin_time_list.append((date - datetime(2004, 1, 1)).days/365 + 2004)
 
-print(begin_time_list)
-
 difference_list = [(i - j).days/365 for i, j in zip(end_list, begin_list)]
 
 event_to_begin = {}
