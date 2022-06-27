@@ -1,24 +1,37 @@
+import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from datetime import datetime
 
-event_list = ['Taylor 1993, Taylor 1999, First-Difference', 'Inertial Taylor 1999', 'Outcome-Based', 'Greenbook Forecast-Based, FOMC Forecast-Based, TIPS-Based', 'Nominal Income Targeting', 'Forecast-Based', 'Taylor 1999 with Higher r*']
-begin_list = np.array([datetime(2004, 1, 28), datetime(2012, 9, 13), datetime(2004, 1, 28), datetime(2004, 1, 28), datetime(2012, 3, 13), datetime(2006, 1, 31), datetime(2006, 8, 8)])
-end_list = np.array([datetime(2016, 12, 31), datetime(2016, 12, 31), datetime(2012, 12, 17), datetime(2005, 12, 13), datetime(2014, 12, 17), datetime(2012, 1, 25), datetime(2008, 4, 30)])
+df = pd.read_excel('FOMCequation.xlsx')
+event_list = list(df.columns)
+date_list = df[event_list[0]].to_list()
+del event_list[0]
+# NOTE: show Amy
+event_list.remove('Lower NAIRU')
+event_list.remove('Faster/Slower Productivity Growth')
+event_list.remove('Taylor Rule without/with Error')
+event_list.remove('Realized Inflation')
+
+begin_list = []
+end_list = []
+for event in event_list:
+    column_values = df[event].dropna().to_list()
+    begin_index = df.index[df[event] == column_values[0]].to_list()[0]
+    begin_list.append(datetime.strptime(date_list[begin_index], '%m/%d/%Y'))
+    end_index = df.index[df[event] == column_values[-1]].to_list()[-1]
+    end_list.append(datetime.strptime(date_list[end_index], '%m/%d/%Y'))
 
 begin_time_list = []
 for date in begin_list:
-    begin_time_list.append((date - datetime(2004, 1, 1)).days/365 + 2004)
+    begin_time_list.append((date - datetime(1999, 1, 1)).days/365 + 1999)
 
 difference_list = [(i - j).days/365 for i, j in zip(end_list, begin_list)]
 
 event_to_begin = {}
 for i in range(len(event_list)):
     if event_list[i] not in event_to_begin:
-        if '01/28/2004' not in begin_list[i].strftime("%m/%d/%Y"):
-            event_to_begin[event_list[i]] = begin_list[i].strftime("%m/%d/%Y")
-        else:
-            event_to_begin[event_list[i]] = str(begin_list[i].year)
+        event_to_begin[event_list[i]] = begin_list[i].strftime("%m/%d/%Y")
 
 even_to_end = {}
 for i in range(len(event_list)):
@@ -65,5 +78,6 @@ bar_graph = plt.barh(event_list, difference_list, left=begin_time_list, color = 
 plt.title('FOMC Equations Timeline', fontweight = 'bold', backgroundcolor = 'silver')
 plt.xlabel('YEAR')
 plt.ylabel('FOMC EQUATION')
+plt.xticks([1999, 2001, 2003, 2005, 2007, 2009, 2011, 2013, 2015])
 addlabel(begin_list, end_list)
 plt.show()
