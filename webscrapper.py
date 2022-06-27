@@ -9,6 +9,7 @@ import pygsheets
 from pygsheets.datarange import DataRange
 
 sheet = pygsheets.authorize(service_account_file = 'write_into_google_sheet.json').open('Summer RA')
+date_to_minute = {}
 date_to_text = {}
 date_to_voting = {}
 
@@ -27,8 +28,67 @@ class WebScrapper():
         self.text = ''
 
         if int(year) <= 2017:
+            self.get_release_information(year)
             self.populate_statement_url_list(year)
             self.get_text(year)
+
+    def get_release_information(self, year):
+        if int(year) < 2011:
+            for meeting in self.soup.find(id = 'article').find_all(class_ = 'panel panel-default'):
+                if 'Meeting' not in meeting.find('h5').get_text():
+                    continue
+                if 'Statement' not in meeting.get_text():
+                    continue
+
+                date = meeting.find('h5').get_text().partition('Meeting - ')
+                date = ''.join(date[0] + date[2])
+                date = date.split(' ')
+                date_word_list = []
+                date[1] = date[1] + ','
+                for word in date:
+                    if '-' in word:
+                        word = word.split('-')[1]
+                    date_word_list.append(word)
+                date = self.convert_date(' '.join(date_word_list))
+
+                for column in meeting.find_all(class_ = 'col-xs-12 col-md-6'):
+                    for p in column.find_all('p'):
+                        for a in p.find_all('a', href = True):
+                            if 'minutes' in a.get('href'):
+                                if date not in date_to_minute:
+                                    if re.findall('Released (.*?)\)', p.get_text()) != []:
+                                        date_to_minute[date] = self.convert_date(re.findall('Released (.*?)\)', p.get_text())[0])
+        elif 2011 <= int(year) < 2017:
+            for meeting in self.soup.find(id = 'article').find_all(class_ = 'panel panel-default panel-padded'):
+                if 'Meeting' not in meeting.find('h5').get_text():
+                    continue
+                if 'Statement' not in meeting.get_text():
+                    continue
+
+                date = meeting.find('h5').get_text().partition('Meeting - ')
+                date = ''.join(date[0] + date[2])
+                date = date.split(' ')
+                date_word_list = []
+                if len(date) == 5:
+                    date_word_list.append(date[1].partition('-')[2] + ' ' + date[2] + ',')
+                    date_word_list.append(date[4])
+                else:
+                    date[1] = date[1] + ','
+                    for word in date:
+                        if '/' in word:
+                            word = word.split('/')[1]
+                        if '-' in word:
+                            word = word.split('-')[1]
+                        date_word_list.append(word)
+                date = self.convert_date(' '.join(date_word_list))
+
+                for column in meeting.find_all(class_ = 'col-xs-12 col-md-6'):
+                    for p in column.find_all('p'):
+                        for a in p.find_all('a', href = True):
+                            if 'minutes' in a.get('href'):
+                                if date not in date_to_minute:
+                                    if re.findall('Released (.*?)\)', p.get_text()) != []:
+                                        date_to_minute[date] = self.convert_date(re.findall('Released (.*?)\)', p.get_text())[0])
 
     def populate_statement_url_list(self, year):
         if int(year) < 2011:
@@ -118,7 +178,10 @@ class WebScrapper():
                     date_to_text[self.convert_date(date)] = self.text
 
     def convert_date(self, date):
-        return datetime.strptime(date, '%B %d, %Y').strftime('%m/%d/%Y')
+        try:
+            return datetime.strptime(date, '%B %d, %Y').strftime('%m/%d/%Y')
+        except ValueError:
+            return datetime.strptime(date, '%b %d, %Y').strftime('%m/%d/%Y')
 
 for i in range(1999, 2022):
     webscrapper = WebScrapper(str(i))
@@ -198,6 +261,11 @@ for date, text in date_to_text.items():
         date_to_text[date] = ['', '', '', '', '']
 
 date_list = ['FOMC Statement Release Date']
+statement_list = ['Statement Release Time']
+press_conference_list = ['Press Conference Start Time']
+sep_list = ['SEP Released']
+minute_list = ['Minutes Release Date']
+internal_material_list = ['Internal Material Released']
 number_voting_for_list = ['Number of Members Voting in Favor']
 number_voting_against_list = ['Number of Members Not in Favor']
 voting_for_list= ['Names in Favor']
@@ -206,6 +274,11 @@ voting_against_paragraph_list = ['Reason for Dissent']
 
 for date, text in date_to_text.items():
     date_list.append(date)
+    if date != '03/18/2020':
+        statement_list.append('02:00 PM')
+    if date in date_to_minute:
+        minute_list.append(date_to_minute[date])
+    internal_material_list.append('01' + '/' + str(int(date.split('/')[-1]) + 6))
     number_voting_for_list.append(text[0])
     number_voting_against_list.append(text[1])
     voting_for_list.append(text[2])
@@ -213,16 +286,21 @@ for date, text in date_to_text.items():
     voting_against_paragraph_list.append(text[4])
 
 try:
-    FOMC_info_release_sheet = sheet.add_worksheet('fomc_info_release', rows = 187, cols = 6)
+    FOMC_info_release_sheet = sheet.add_worksheet('fomc_info_release', rows = 187, cols = 11)
     FOMC_info_release_sheet.update_col(1, date_list)
-    FOMC_info_release_sheet.update_col(2, number_voting_for_list)
-    FOMC_info_release_sheet.update_col(3, number_voting_against_list)
-    FOMC_info_release_sheet.update_col(4, voting_for_list)
-    FOMC_info_release_sheet.update_col(5, voting_against_list)
-    FOMC_info_release_sheet.update_col(6, voting_against_paragraph_list)
+    FOMC_info_release_sheet.update_col(2, statement_list)
+    FOMC_info_release_sheet.update_col(3, press_conference_list)
+    FOMC_info_release_sheet.update_col(4, sep_list)
+    FOMC_info_release_sheet.update_col(5, minute_list)
+    FOMC_info_release_sheet.update_col(6, internal_material_list)
+    FOMC_info_release_sheet.update_col(7, number_voting_for_list)
+    FOMC_info_release_sheet.update_col(8, number_voting_against_list)
+    FOMC_info_release_sheet.update_col(9, voting_for_list)
+    FOMC_info_release_sheet.update_col(10, voting_against_list)
+    FOMC_info_release_sheet.update_col(11, voting_against_paragraph_list)
     FOMC_info_release_sheet.sort_range(start = 'A2', end = 'F187', basecolumnindex = 0, sortorder = 'ASCENDING')
     bold = FOMC_info_release_sheet.cell('A1')
     bold.set_text_format('bold', True)
-    DataRange('A1','F1', worksheet = FOMC_info_release_sheet).apply_format(bold)
+    DataRange('A1','K1', worksheet = FOMC_info_release_sheet).apply_format(bold)
 except:
     pass
