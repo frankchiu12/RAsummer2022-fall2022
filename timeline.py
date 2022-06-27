@@ -1,6 +1,5 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import numpy as np
 from datetime import datetime
 
 df = pd.read_excel('FOMCequation.xlsx')
@@ -10,7 +9,7 @@ del event_list[0]
 # NOTE: show Amy
 event_list.remove('Lower NAIRU')
 event_list.remove('Faster/Slower Productivity Growth')
-event_list.remove('Taylor Rule without/with Error')
+event_list.remove('Taylor without/with Error')
 event_list.remove('Realized Inflation')
 
 begin_list = []
