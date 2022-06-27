@@ -63,6 +63,11 @@ class Plot:
                         statistics_list.append(100 * ((np.percentile(self.year_to_quarter_to_statistic[year][quarter], 25)/np.percentile(previous_year_to_quarter_to_statistic[year][quarter], 25)) ** 4 - 1))
                         statistics_list.append(100 * ((np.percentile(self.year_to_quarter_to_statistic[year][quarter], 50)/np.percentile(previous_year_to_quarter_to_statistic[year][quarter], 50)) ** 4 - 1))
                         statistics_list.append(100 * ((np.percentile(self.year_to_quarter_to_statistic[year][quarter], 75)/np.percentile(previous_year_to_quarter_to_statistic[year][quarter], 75)) ** 4 - 1))
+                    
+                        print(str(year) + ' + ' + str(quarter))
+                        print(np.percentile(self.year_to_quarter_to_statistic[year][quarter], 50))
+                        print(np.percentile(previous_year_to_quarter_to_statistic[year][quarter], 50))
+                        print(100 * ((np.percentile(self.year_to_quarter_to_statistic[year][quarter], 50)/np.percentile(previous_year_to_quarter_to_statistic[year][quarter], 50)) ** 4 - 1))
 
                     self.year_to_quarter_to_statistic[year][quarter] = statistics_list
 
