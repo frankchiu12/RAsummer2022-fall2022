@@ -16,10 +16,10 @@ event_list.remove('Realized Inflation')
 begin_list = []
 end_list = []
 for event in event_list:
-    column_values = df[event].dropna().to_list()
-    begin_index = df.index[df[event] == column_values[0]].to_list()[0]
+    column_value_list = df[event].dropna().to_list()
+    begin_index = df.index[df[event] == column_value_list[0]].to_list()[0]
     begin_list.append(datetime.strptime(date_list[begin_index], '%m/%d/%Y'))
-    end_index = df.index[df[event] == column_values[-1]].to_list()[-1]
+    end_index = df.index[df[event] == column_value_list[-1]].to_list()[-1]
     end_list.append(datetime.strptime(date_list[end_index], '%m/%d/%Y'))
 
 begin_time_list = []
