@@ -280,14 +280,10 @@ class WebScrapper():
 for year in range(1999, 2023):
     webscrapper = WebScrapper(str(year))
 
-######################################################################################################################################
-
 for date, text in date_to_text.items():
     if 'Voting for the ' in text:
         tuple = text.partition('Voting for the ')
-        modified_text = tuple[1] + tuple[2]
-        tuple = modified_text.partition('Voting against ')
-
+        tuple = (tuple[1] + tuple[2]).partition('Voting against ')
         voting_for = tuple[0].strip()
         voting_against = tuple[1] + tuple[2]
 
@@ -305,9 +301,7 @@ for date, text in date_to_text.items():
             word_in_name_list = name.split(' ')
             if '' in word_in_name_list:
                 word_in_name_list.remove('')
-
             last_name_list.append(word_in_name_list[len(word_in_name_list) - 1]) 
-
             parsed_last_name_list = []
             for last_name in last_name_list:
                 parsed_last_name_list.append(last_name.strip(',.')) 
@@ -339,12 +333,12 @@ for date, text in date_to_text.items():
         if voting_against != []:
             for name in voting_against:
                 word_in_name_list = str(name).split(' ')
-                if word_in_name_list[len(word_in_name_list) - 1] not in last_name_list:
-                    last_name_list.append(word_in_name_list[len(word_in_name_list) - 1])
+                last_name = word_in_name_list[len(word_in_name_list) - 1]
+                if last_name not in last_name_list:
+                    last_name_list.append(last_name)
             voting_against = ', '.join(last_name_list)
         else:
             voting_against = ''
-
         if voting_against == '':
             number_voting_against = 0
         else:
@@ -357,8 +351,8 @@ for date, text in date_to_text.items():
 date_list = ['FOMC Statement Release Date']
 statement_list = ['Statement Release Time']
 press_conference_list = ['Press Conference Start Time']
-sep_list = ['SEP Released']
-minute_list = ['Minutes Release Date']
+SEP_list = ['SEP Released']
+minutes_list = ['Minutes Release Date']
 internal_material_list = ['Internal Material Released']
 number_voting_for_list = ['Number of Members Voting in Favor']
 number_voting_against_list = ['Number of Members Not in Favor']
@@ -368,20 +362,18 @@ voting_against_paragraph_list = ['Reason for Dissent']
 
 for date, text in date_to_text.items():
     date_list.append(date)
-
     if date != '03/18/2020':
         statement_list.append('02:00 PM')
         press_conference_list.append(date_to_press_conference[date])
-        sep_list.append(date_to_SEP[date])
-        minute_list.append(date_to_minutes[date])
+        SEP_list.append(date_to_SEP[date])
+        minutes_list.append(date_to_minutes[date])
         internal_material_list.append('01' + '/' + str(int(date.split('/')[-1]) + 6))
     else:
         statement_list.append('')
         press_conference_list.append('')
-        sep_list.append('')
-        minute_list.append('')
+        SEP_list.append('')
+        minutes_list.append('')
         internal_material_list.append('')
-
     number_voting_for_list.append(text[0])
     number_voting_against_list.append(text[1])
     voting_for_list.append(text[2])
@@ -393,8 +385,8 @@ try:
     FOMC_info_release_sheet.update_col(1, date_list)
     FOMC_info_release_sheet.update_col(2, statement_list)
     FOMC_info_release_sheet.update_col(3, press_conference_list)
-    FOMC_info_release_sheet.update_col(4, sep_list)
-    FOMC_info_release_sheet.update_col(5, minute_list)
+    FOMC_info_release_sheet.update_col(4, SEP_list)
+    FOMC_info_release_sheet.update_col(5, minutes_list)
     FOMC_info_release_sheet.update_col(6, internal_material_list)
     FOMC_info_release_sheet.update_col(7, number_voting_for_list)
     FOMC_info_release_sheet.update_col(8, number_voting_against_list)
