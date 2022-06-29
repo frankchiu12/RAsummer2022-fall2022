@@ -18,6 +18,7 @@ date_to_voting = {}
 class WebScrapper():
 
     def __init__(self, year):
+
         if int(year) < 2017:
             URL = 'https://www.federalreserve.gov/monetarypolicy/fomchistorical' + year + '.htm'
         else:
