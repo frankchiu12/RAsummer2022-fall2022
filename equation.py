@@ -9,16 +9,16 @@ class Equation():
         xls = pd.ExcelFile(relative_file_path)
         self.df = pd.read_excel(xls, statistic).dropna(subset=[statistic + 'F1'])
         self.year_list = self.df.DATE.unique()
-        self.year_quarter_to_statistic = {}
+        self.year_quarter_to_mean = {}
 
     def data(self, statistic):
         for year_quarter in self.year_list:
-            if '-'.join(str(year_quarter).split('.')) not in self.year_quarter_to_statistic:
-                self.year_quarter_to_statistic['-'.join(str(year_quarter).split('.'))] = np.mean(self.df.loc[self.df['DATE'].eq(year_quarter)][statistic + 'F1'].tolist())
+            if '-'.join(str(year_quarter).split('.')) not in self.year_quarter_to_mean:
+                self.year_quarter_to_mean['-'.join(str(year_quarter).split('.'))] = np.mean(self.df.loc[self.df['DATE'].eq(year_quarter)][statistic + 'F1'].tolist())
 
         year_quarter_list = []
         statistic_list = []
-        for year_quarter, mean in self.year_quarter_to_statistic.items():
+        for year_quarter, mean in self.year_quarter_to_mean.items():
             year_quarter_list.append(year_quarter)
             statistic_list.append(mean)
 

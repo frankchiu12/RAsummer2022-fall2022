@@ -9,6 +9,8 @@ import pygsheets
 from pygsheets.datarange import DataRange
 
 sheet = pygsheets.authorize(service_account_file = 'write_into_google_sheet.json').open('Summer RA')
+date_to_press = {}
+date_to_sep = {}
 date_to_minute = {}
 date_to_text = {}
 date_to_voting = {}
@@ -26,13 +28,132 @@ class WebScrapper():
         self.soup = BeautifulSoup(self.page.content, 'html.parser')
         self.statement_url_list = []
         self.text = ''
+        self.date = ''
 
         if int(year) <= 2017:
-            self.get_release_information(year)
+            self.get_press_and_sep(year)
+            self.get_minute(year)
             self.populate_statement_url_list(year)
             self.get_text(year)
 
-    def get_release_information(self, year):
+    def get_press_and_sep(self, year):
+        if int(year) < 2011:
+            for meeting in self.soup.find(id = 'article').find_all(class_ = 'panel panel-default'):
+                if 'Meeting' not in meeting.find('h5').get_text():
+                    continue
+                if 'Statement' not in meeting.get_text():
+                    continue
+
+                date = meeting.find('h5').get_text().partition('Meeting - ')
+                date = ''.join(date[0] + date[2])
+                date = date.split(' ')
+                date_word_list = []
+                date[1] = date[1] + ','
+                for word in date:
+                    if '-' in word:
+                        word = word.split('-')[1]
+                    date_word_list.append(word)
+                date = self.convert_date(' '.join(date_word_list))
+
+                for column in meeting.find_all(class_ = 'col-xs-12 col-md-6'):
+                    if 'Press' in column.get_text():
+                        if date not in date_to_press:
+                            date_to_press[date] = 'TRUE'  
+                    else:
+                        if date not in date_to_press:
+                            date_to_press[date] = ''
+
+                    if 'SEP' in column.get_text():
+                        date_to_sep[date] = 'TRUE'
+                    else:
+                        date_to_sep[date] = ''
+
+        elif 2011 <= int(year) < 2017:
+            for meeting in self.soup.find(id = 'article').find_all(class_ = 'panel panel-default panel-padded'):
+                if 'Meeting' not in meeting.find('h5').get_text():
+                    continue
+                if 'Statement' not in meeting.get_text():
+                    continue
+
+                date = meeting.find('h5').get_text().partition('Meeting - ')
+                date = ''.join(date[0] + date[2])
+                date = date.split(' ')
+                date_word_list = []
+                if len(date) == 5:
+                    date_word_list.append(date[1].partition('-')[2] + ' ' + date[2] + ',')
+                    date_word_list.append(date[4])
+                else:
+                    date[1] = date[1] + ','
+                    for word in date:
+                        if '/' in word:
+                            word = word.split('/')[1]
+                        if '-' in word:
+                            word = word.split('-')[1]
+                        date_word_list.append(word)
+                date = self.convert_date(' '.join(date_word_list))
+
+                for column in meeting.find_all(class_ = 'col-xs-12 col-md-6'):
+                    if 'Press' in column.get_text():
+                        if date not in date_to_press:
+                            date_to_press[date] = 'TRUE'  
+                    else:
+                        if date not in date_to_press:
+                            date_to_press[date] = ''
+
+                    if 'SEP' in column.get_text():
+                        date_to_sep[date] = 'TRUE'
+                    else:
+                        date_to_sep[date] = ''
+        else:
+            for meeting_year in self.soup.find(id = 'article').find_all(class_ = 'panel panel-default'):
+                for meeting in meeting_year:
+                    date = ''
+                    if isinstance(meeting, NavigableString):
+                        continue
+                    if '(notation value)' in meeting.get_text() or '(unscheduled)' in meeting.get_text():
+                        continue
+                    if 'panel-heading' in meeting.get('class'):
+                        self.date = meeting.get_text().split(' ')[0]
+                    for meeting_information in meeting:
+                        press = False
+                        sep = False
+                        if isinstance(meeting_information, NavigableString):
+                            continue
+                        if meeting_information.get('class') is not None and 'fomc-meeting__month' in meeting_information.get('class'):
+                            date = meeting_information.get_text()
+                        if meeting_information.get('class') is not None and 'fomc-meeting__date' in meeting_information.get('class'):
+                            date = date + ' ' + meeting_information.get_text() + ' ' + self.date
+                        if meeting_information.get('class')is not None and 'col-lg-3' in meeting_information.get('class'):
+                            if 'Press Conference' in meeting_information.get_text():
+                                press = 'TRUE'
+                            else:
+                                press = ''
+                            if 'Projection Materials' in meeting_information.get_text():
+                                sep = 'TRUE'
+                            else:
+                                sep = ''
+                        date = date.split(' ')
+                        if len(date) != 3:
+                            date = ' '.join(date)
+                            continue
+                        date_word_list = []
+                        for date_word in date:
+                            if '-' in date_word:
+                                date_word = date_word.partition('-')[2]
+                            if '*' in date_word:
+                                date_word = date_word.strip('*')
+                            if '/' in date_word:
+                                date_word = date_word.partition('/')[2]
+                            date_word_list.append(date_word)
+                        date_word_list[1] = date_word_list[1] + ','
+                        date = ' '.join(date_word_list).replace(',,,,', ',').replace(',,,', ',')
+                        if '(notation value)' not in date and '(cancelled)' not in date:
+                            if date not in date_to_press and press != False:
+                                date_to_press[self.convert_date(date)] = press
+                            if date not in date_to_sep and sep != False:
+                                date_to_sep[self.convert_date(date)] = sep
+
+    def get_minute(self, year):
         if int(year) < 2011:
             for meeting in self.soup.find(id = 'article').find_all(class_ = 'panel panel-default'):
                 if 'Meeting' not in meeting.find('h5').get_text():
@@ -89,6 +210,48 @@ class WebScrapper():
                                 if date not in date_to_minute:
                                     if re.findall('Released (.*?)\)', p.get_text()) != []:
                                         date_to_minute[date] = self.convert_date(re.findall('Released (.*?)\)', p.get_text())[0])
+        else:
+            for meeting_year in self.soup.find(id = 'article').find_all(class_ = 'panel panel-default'):
+                for meeting in meeting_year:
+                    date = ''
+                    if isinstance(meeting, NavigableString):
+                        continue
+                    if '(notation value)' in meeting.get_text() or '(unscheduled)' in meeting.get_text():
+                        continue
+                    if 'panel-heading' in meeting.get('class'):
+                        self.date = meeting.get_text().split(' ')[0]
+                    for meeting_information in meeting:
+                        minute = ''
+                        if isinstance(meeting_information, NavigableString):
+                            continue
+                        if meeting_information.get('class') is not None and 'fomc-meeting__month' in meeting_information.get('class'):
+                            date = meeting_information.get_text()
+                        if meeting_information.get('class') is not None and 'fomc-meeting__date' in meeting_information.get('class'):
+                            date = date + ' ' + meeting_information.get_text() + ' ' + self.date
+                        if meeting_information.get('class')is not None and 'fomc-meeting__minutes' in meeting_information.get('class'):
+                            minute = re.findall('Released (.*?)\)', meeting_information.get_text())
+                        date = date.split(' ')
+                        if len(date) != 3:
+                            date = ' '.join(date)
+                            continue
+                        date_word_list = []
+                        for date_word in date:
+                            if '-' in date_word:
+                                date_word = date_word.partition('-')[2]
+                            if '*' in date_word:
+                                date_word = date_word.strip('*')
+                            if '/' in date_word:
+                                date_word = date_word.partition('/')[2]
+                            date_word_list.append(date_word)
+                        if ',' not in date_word_list[1]:
+                            date_word_list[1] = date_word_list[1] + ','
+                        date = ' '.join(date_word_list)
+                        if '(notation value)' not in date and '(cancelled)' not in date:
+                            if date not in date_to_minute:
+                                if minute != '' and minute != []:
+                                    date_to_minute[self.convert_date(date)] = self.convert_date(minute[0])
+                                else:
+                                    date_to_minute[self.convert_date(date)] = ''
 
     def populate_statement_url_list(self, year):
         if int(year) < 2011:
@@ -274,10 +437,17 @@ voting_against_paragraph_list = ['Reason for Dissent']
 
 for date, text in date_to_text.items():
     date_list.append(date)
+
     if date != '03/18/2020':
         statement_list.append('02:00 PM')
-    if date in date_to_minute:
+        press_conference_list.append(date_to_press[date])
+        sep_list.append(date_to_sep[date])
         minute_list.append(date_to_minute[date])
+    else:
+        statement_list.append('')
+        press_conference_list.append('')
+        sep_list.append('')
+        minute_list.append('')
     internal_material_list.append('01' + '/' + str(int(date.split('/')[-1]) + 6))
     number_voting_for_list.append(text[0])
     number_voting_against_list.append(text[1])

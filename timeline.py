@@ -35,17 +35,15 @@ for i in range(len(event_list)):
 even_to_end = {}
 for i in range(len(event_list)):
     if event_list[i] not in even_to_end:
-        if '12/31' not in end_list[i].strftime("%m/%d/%Y"):
-            even_to_end[event_list[i]] = end_list[i].strftime("%m/%d/%Y")
-        elif '12/31/2016' in end_list[i].strftime("%m/%d/%Y"):
+        if '12/31/2016' in end_list[i].strftime("%m/%d/%Y"):
             even_to_end[event_list[i]] = 'now'
         else:
-            even_to_end[event_list[i]] = 'eoy ' + str(end_list[i].year)
+            even_to_end[event_list[i]] = end_list[i].strftime("%m/%d/%Y")
 
-event_to_begin_year = {}
+event_to_begin_time = {}
 for i in range(len(event_list)):
-    if event_list[i] not in event_to_begin_year:
-        event_to_begin_year[event_list[i]] = begin_time_list[i]
+    if event_list[i] not in event_to_begin_time:
+        event_to_begin_time[event_list[i]] = begin_time_list[i]
 
 event_to_difference = {}
 for i in range(len(event_list)):
@@ -62,7 +60,7 @@ end_list = []
 for event, difference in event_to_difference.items():
     event_list.append(event)
     difference_list.append(difference)
-    begin_time_list.append(event_to_begin_year[event])
+    begin_time_list.append(event_to_begin_time[event])
     begin_list.append(event_to_begin[event])
     end_list.append(even_to_end[event])
 

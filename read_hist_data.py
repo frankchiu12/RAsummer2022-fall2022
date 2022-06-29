@@ -3,8 +3,7 @@ import xml.etree.ElementTree as et
 import pygsheets
 from pygsheets.datarange import DataRange
 
-read_file = pd.read_csv ('HISTDATA.TXT')
-read_file.to_csv('/Users/franksi-unchiu/Desktop/cs200python/RAsummer2022/histdata.csv', index = None)
+pd.read_csv('HISTDATA.TXT').to_csv('/Users/franksi-unchiu/Desktop/cs200python/RAsummer2022/histdata.csv', index = None)
 df = pd.read_csv('/Users/franksi-unchiu/Desktop/cs200python/RAsummer2022/histdata.csv')
 root: et.Element = et.parse('pyfrbus_package/models/model.xml').getroot()
 all_variable: et.ElementTree = root.findall("variable")
