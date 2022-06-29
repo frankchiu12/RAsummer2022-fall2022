@@ -9,9 +9,9 @@ import pygsheets
 from pygsheets.datarange import DataRange
 
 sheet = pygsheets.authorize(service_account_file = 'write_into_google_sheet.json').open('Summer RA')
-date_to_press_conference = {}
-date_to_SEP = {}
-date_to_minutes = {}
+date_to_press = {}
+date_to_sep = {}
+date_to_minute = {}
 date_to_text = {}
 date_to_voting = {}
 
@@ -27,17 +27,16 @@ class WebScrapper():
         self.page = requests.get(self.URL)
         self.soup = BeautifulSoup(self.page.content, 'html.parser')
         self.statement_url_list = []
-        # NOTE: might not even need this
-        self.date = ''
         self.text = ''
+        self.date = ''
 
         if int(year) <= 2017:
-            self.get_press_conference_and_SEP(year)
-            self.get_minutes(year)
+            self.get_press_and_sep(year)
+            self.get_minute(year)
             self.get_statement_url(year)
             self.get_text(year)
 
-    def get_press_conference_and_SEP(self, year):
+    def get_press_and_sep(self, year):
         if int(year) < 2011:
             for meeting in self.soup.find(id = 'article').find_all(class_ = 'panel panel-default'):
                 if 'Meeting' not in meeting.find('h5').get_text():
@@ -46,27 +45,28 @@ class WebScrapper():
                     continue
 
                 date = meeting.find('h5').get_text().partition('Meeting - ')
-                date = ''.join(date[0] + date[2]).split(' ')
+                date = ''.join(date[0] + date[2])
+                date = date.split(' ')
                 date_word_list = []
                 date[1] = date[1] + ','
-                for date_word in date:
-                    if '-' in date_word:
-                        date_word = date_word.split('-')[1]
-                    date_word_list.append(date_word)
+                for word in date:
+                    if '-' in word:
+                        word = word.split('-')[1]
+                    date_word_list.append(word)
                 date = self.convert_date(' '.join(date_word_list))
 
                 for column in meeting.find_all(class_ = 'col-xs-12 col-md-6'):
                     if 'Press' in column.get_text():
-                        if date not in date_to_press_conference:
-                            date_to_press_conference[date] = 'TRUE'  
+                        if date not in date_to_press:
+                            date_to_press[date] = 'TRUE'  
                     else:
-                        if date not in date_to_press_conference:
-                            date_to_press_conference[date] = ''
+                        if date not in date_to_press:
+                            date_to_press[date] = ''
 
                     if 'SEP' in column.get_text():
-                        date_to_SEP[date] = 'TRUE'
+                        date_to_sep[date] = 'TRUE'
                     else:
-                        date_to_SEP[date] = ''
+                        date_to_sep[date] = ''
 
         elif 2011 <= int(year) < 2017:
             for meeting in self.soup.find(id = 'article').find_all(class_ = 'panel panel-default panel-padded'):
@@ -76,33 +76,34 @@ class WebScrapper():
                     continue
 
                 date = meeting.find('h5').get_text().partition('Meeting - ')
-                date = ''.join(date[0] + date[2]).split(' ')
+                date = ''.join(date[0] + date[2])
+                date = date.split(' ')
                 date_word_list = []
                 if len(date) == 5:
                     date_word_list.append(date[1].partition('-')[2] + ' ' + date[2] + ',')
                     date_word_list.append(date[4])
                 else:
                     date[1] = date[1] + ','
-                    for date_word in date:
-                        if '/' in date_word:
-                            date_word = date_word.split('/')[1]
-                        if '-' in date_word:
-                            date_word = date_word.split('-')[1]
-                        date_word_list.append(date_word)
+                    for word in date:
+                        if '/' in word:
+                            word = word.split('/')[1]
+                        if '-' in word:
+                            word = word.split('-')[1]
+                        date_word_list.append(word)
                 date = self.convert_date(' '.join(date_word_list))
 
                 for column in meeting.find_all(class_ = 'col-xs-12 col-md-6'):
                     if 'Press' in column.get_text():
-                        if date not in date_to_press_conference:
-                            date_to_press_conference[date] = 'TRUE'  
+                        if date not in date_to_press:
+                            date_to_press[date] = 'TRUE'  
                     else:
-                        if date not in date_to_press_conference:
-                            date_to_press_conference[date] = ''
+                        if date not in date_to_press:
+                            date_to_press[date] = ''
 
                     if 'SEP' in column.get_text():
-                        date_to_SEP[date] = 'TRUE'
+                        date_to_sep[date] = 'TRUE'
                     else:
-                        date_to_SEP[date] = ''
+                        date_to_sep[date] = ''
         else:
             for meeting_year in self.soup.find(id = 'article').find_all(class_ = 'panel panel-default'):
                 for meeting in meeting_year:
@@ -113,10 +114,6 @@ class WebScrapper():
                         continue
                     if 'panel-heading' in meeting.get('class'):
                         self.date = meeting.get_text().split(' ')[0]
-                    # TODO: clean up
-                    # if meeting.find(class_ = 'col-xs-12 col-md-4 col-lg-3') is not None:
-                    #     print(meeting.find(class_ = 'col-xs-12 col-md-4 col-lg-3').get_text())
-                    #     print('===============================')
                     for meeting_information in meeting:
                         press = False
                         sep = False
@@ -151,12 +148,12 @@ class WebScrapper():
                         date_word_list[1] = date_word_list[1] + ','
                         date = ' '.join(date_word_list).replace(',,,,', ',').replace(',,,', ',')
                         if '(notation value)' not in date and '(cancelled)' not in date:
-                            if date not in date_to_press_conference and press != False:
-                                date_to_press_conference[self.convert_date(date)] = press
-                            if date not in date_to_SEP and sep != False:
-                                date_to_SEP[self.convert_date(date)] = sep
+                            if date not in date_to_press and press != False:
+                                date_to_press[self.convert_date(date)] = press
+                            if date not in date_to_sep and sep != False:
+                                date_to_sep[self.convert_date(date)] = sep
 
-    def get_minutes(self, year):
+    def get_minute(self, year):
         if int(year) < 2011:
             for meeting in self.soup.find(id = 'article').find_all(class_ = 'panel panel-default'):
                 if 'Meeting' not in meeting.find('h5').get_text():
@@ -179,9 +176,9 @@ class WebScrapper():
                     for p in column.find_all('p'):
                         for a in p.find_all('a', href = True):
                             if 'minutes' in a.get('href'):
-                                if date not in date_to_minutes:
+                                if date not in date_to_minute:
                                     if re.findall('Released (.*?)\)', p.get_text()) != []:
-                                        date_to_minutes[date] = self.convert_date(re.findall('Released (.*?)\)', p.get_text())[0])
+                                        date_to_minute[date] = self.convert_date(re.findall('Released (.*?)\)', p.get_text())[0])
         elif 2011 <= int(year) < 2017:
             for meeting in self.soup.find(id = 'article').find_all(class_ = 'panel panel-default panel-padded'):
                 if 'Meeting' not in meeting.find('h5').get_text():
@@ -210,14 +207,16 @@ class WebScrapper():
                     for p in column.find_all('p'):
                         for a in p.find_all('a', href = True):
                             if 'minutes' in a.get('href'):
-                                if date not in date_to_minutes:
+                                if date not in date_to_minute:
                                     if re.findall('Released (.*?)\)', p.get_text()) != []:
-                                        date_to_minutes[date] = self.convert_date(re.findall('Released (.*?)\)', p.get_text())[0])
+                                        date_to_minute[date] = self.convert_date(re.findall('Released (.*?)\)', p.get_text())[0])
         else:
             for meeting_year in self.soup.find(id = 'article').find_all(class_ = 'panel panel-default'):
                 for meeting in meeting_year:
                     date = ''
-                    if isinstance(meeting, NavigableString) or '(notation value)' in meeting.get_text() or '(unscheduled)' in meeting.get_text():
+                    if isinstance(meeting, NavigableString):
+                        continue
+                    if '(notation value)' in meeting.get_text() or '(unscheduled)' in meeting.get_text():
                         continue
                     if 'panel-heading' in meeting.get('class'):
                         self.date = meeting.get_text().split(' ')[0]
@@ -248,11 +247,11 @@ class WebScrapper():
                             date_word_list[1] = date_word_list[1] + ','
                         date = ' '.join(date_word_list)
                         if '(notation value)' not in date and '(cancelled)' not in date:
-                            if date not in date_to_minutes:
+                            if date not in date_to_minute:
                                 if minute != '' and minute != []:
-                                    date_to_minutes[self.convert_date(date)] = self.convert_date(minute[0])
+                                    date_to_minute[self.convert_date(date)] = self.convert_date(minute[0])
                                 else:
-                                    date_to_minutes[self.convert_date(date)] = ''
+                                    date_to_minute[self.convert_date(date)] = ''
 
     def get_statement_url(self, year):
 
@@ -292,21 +291,20 @@ class WebScrapper():
             self.sub_URL = 'https://www.federalreserve.gov/' + statement_url
             self.sub_page = requests.get(self.sub_URL)
             self.sub_soup = BeautifulSoup(self.sub_page.content, 'html.parser')
-
             if int(year) < 2006:
                 date = self.sub_soup.find('font').get_text().replace('Release Date: ', '')
-                # split into list of sentences
-                for article in self.sub_soup.find_all('td'):
-                    self.text = tokenize.sent_tokenize(article.get_text())
+                # split into list ofsentences
+                for td in self.sub_soup.find_all('td'):
+                    self.text = tokenize.sent_tokenize(td.get_text())
             else: 
                 date = self.sub_soup.find(class_ = 'article__time').get_text().replace('Release Date: ', '')
                 # split into list of sentences
                 for article in self.sub_soup.find_all(class_ = 'col-xs-12 col-sm-8 col-md-8'):
                     self.text = tokenize.sent_tokenize(article.get_text())
 
-            # if there is post-article text, remove that sentence
+            # if it is post-article text, remove that sentence
             if 'Last update: ' in self.text[-1]:
-                # deals with the edge case of Jr. + (something) being considered one sentence
+                # deals with edge case of Jr. + (sth) being considered one sentence
                 if 'Jr.\r' in self.text[-1]:
                     self.text[-1] = self.text[-1].partition('Jr.\r')[0] + self.text[-1].partition('Jr.\r')[1]
                 elif 'Jr. \r' in self.text[-1]:
@@ -314,16 +312,16 @@ class WebScrapper():
                 else:
                     del self.text[-1]
 
-            # substitute + and \n\r\t with a space for each element in the list of sentences and strip
+            # append the list of sentences to remove \n\r\t
             text_list = []
+            regex = re.compile(r'[\n\r\t]')
             for sub_text in self.text:
-                text_list.append(re.sub(' +', ' ', re.compile(r'[\n\r\t]').sub(' ', sub_text).strip()))
+                text_list.append(re.sub(' +', ' ', regex.sub(' ', sub_text).strip()))
 
             # join the list of sentences together into a paragraph
             self.text = ''
-            for text in text_list:
-                self.text = self.text + ' ' + text
-            # replace \xao with a space and strip
+            for sub_text in text_list:
+                self.text = self.text + ' ' + sub_text
             self.text = self.text.replace(u'\xa0', u' ').strip()
 
             # remove header
@@ -331,7 +329,7 @@ class WebScrapper():
                 self.text = self.text.partition('For immediate release ')[2]
 
             # remove sentences that don't end with a period
-            self.text = tokenize.sent_tokenize(article.get_text())
+            self.text = tokenize.sent_tokenize(self.text)
             if self.text[-1][-1] != '.':
                 del self.text[-1]
             self.text = ' '.join(self.text)
@@ -342,15 +340,14 @@ class WebScrapper():
                 else:
                     date_to_text[self.convert_date(date)] = self.text
 
-    # NOTE: code check finished
     def convert_date(self, date):
         try:
             return datetime.strptime(date, '%B %d, %Y').strftime('%m/%d/%Y')
         except ValueError:
             return datetime.strptime(date, '%b %d, %Y').strftime('%m/%d/%Y')
 
-for year in range(1999, 2022):
-    webscrapper = WebScrapper(str(year))
+for i in range(1999, 2022):
+    webscrapper = WebScrapper(str(i))
 
 for date, text in date_to_text.items():
     if 'Voting for the ' in text:
@@ -443,9 +440,9 @@ for date, text in date_to_text.items():
 
     if date != '03/18/2020':
         statement_list.append('02:00 PM')
-        press_conference_list.append(date_to_press_conference[date])
-        sep_list.append(date_to_SEP[date])
-        minute_list.append(date_to_minutes[date])
+        press_conference_list.append(date_to_press[date])
+        sep_list.append(date_to_sep[date])
+        minute_list.append(date_to_minute[date])
         internal_material_list.append('01' + '/' + str(int(date.split('/')[-1]) + 6))
     else:
         statement_list.append('')
