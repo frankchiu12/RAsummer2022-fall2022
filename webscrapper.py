@@ -26,15 +26,14 @@ class WebScrapper():
         page = requests.get(URL)
         self.soup = BeautifulSoup(page.content, 'html.parser')
         self.statement_url_list = []
-        self.text = ''
-        # TODO: might not need this
         self.date = ''
+        self.text = ''
 
         if int(year) <= 2017:
             self.get_press_conference_and_SEP(year)
             self.get_minutes(year)
-            self.get_statement_url(year)
-            self.get_text(year)
+            # self.get_statement_url(year)
+            # self.get_text(year)
 
     def get_press_conference_and_SEP(self, year):
         if int(year) < 2011:
@@ -53,8 +52,8 @@ class WebScrapper():
                     if 'panel-heading' in meeting.get('class'):
                         self.date = meeting.get_text().split(' ')[0]
                     for meeting_information in meeting:
-                        press = False
-                        sep = False
+                        press_conference = False
+                        SEP = False
                         if isinstance(meeting_information, NavigableString):
                             continue
                         if meeting_information.get('class') is not None and 'fomc-meeting__month' in meeting_information.get('class'):
@@ -63,13 +62,13 @@ class WebScrapper():
                             date = date + ' ' + meeting_information.get_text() + ' ' + self.date
                         if meeting_information.get('class')is not None and 'col-lg-3' in meeting_information.get('class'):
                             if 'Press Conference' in meeting_information.get_text():
-                                press = 'TRUE'
+                                press_conference = 'TRUE'
                             else:
-                                press = ''
+                                press_conference = ''
                             if 'Projection Materials' in meeting_information.get_text():
-                                sep = 'TRUE'
+                                SEP = 'TRUE'
                             else:
-                                sep = ''
+                                SEP = ''
                         date = date.split(' ')
                         if len(date) != 3:
                             date = ' '.join(date)
@@ -83,15 +82,16 @@ class WebScrapper():
                             if '/' in date_word:
                                 date_word = date_word.partition('/')[2]
                             date_word_list.append(date_word)
-                        date_word_list[1] = date_word_list[1] + ','
-                        date = ' '.join(date_word_list).replace(',,,,', ',').replace(',,,', ',')
+                        if ',' not in date_word_list[1]:
+                            date_word_list[1] = date_word_list[1] + ','
+                        date = ' '.join(date_word_list)
                         if '(notation value)' not in date and '(cancelled)' not in date:
-                            if date not in date_to_press_conference and press != False:
-                                date_to_press_conference[self.convert_date(date)] = press
-                            if date not in date_to_SEP and sep != False:
-                                date_to_SEP[self.convert_date(date)] = sep
+                            if date not in date_to_press_conference and press_conference != False:
+                                date_to_press_conference[self.convert_date(date)] = press_conference
+                            if date not in date_to_SEP and SEP != False:
+                                date_to_SEP[self.convert_date(date)] = SEP
 
-    def get_date_helper(self, meeting):
+    def get_pre_2017_date_helper(self, meeting):
         date = meeting.find('h5').get_text().partition('Meeting - ')
         date = ''.join(date[0] + date[2]).split(' ')
         date_word_list = []
@@ -113,7 +113,7 @@ class WebScrapper():
         for meeting in self.soup.find(id = 'article').find_all(class_ = HTML_class):
             if 'Meeting' not in meeting.find('h5').get_text() or 'Statement' not in meeting.get_text():
                 continue
-            date = self.get_date_helper(meeting)
+            date = self.get_pre_2007_date_helper(meeting)
             for column in meeting.find_all(class_ = 'col-xs-12 col-md-6'):
                 if 'Press' in column.get_text():
                     if date not in date_to_press_conference:
@@ -179,7 +179,7 @@ class WebScrapper():
         for meeting in self.soup.find(id = 'article').find_all(class_ = HTML_class):
             if 'Meeting' not in meeting.find('h5').get_text() or 'Statement' not in meeting.get_text():
                 continue
-            date = self.get_date_helper(meeting)
+            date = self.get_pre_2007_date_helper(meeting)
             for column in meeting.find_all(class_ = 'col-xs-12 col-md-6'):
                 for p in column.find_all('p'):
                     for a in p.find_all('a', href = True):
@@ -187,6 +187,9 @@ class WebScrapper():
                             if date not in date_to_minutes:
                                 if re.findall('Released (.*?)\)', p.get_text()) != []:
                                     date_to_minutes[date] = self.convert_date(re.findall('Released (.*?)\)', p.get_text())[0])
+
+    def get_post_2017_date_helper(self):
+        pass
 
 ######################################################################################################################################
 
@@ -280,122 +283,122 @@ class WebScrapper():
 for year in range(1999, 2023):
     webscrapper = WebScrapper(str(year))
 
-for date, text in date_to_text.items():
-    if 'Voting for the ' in text:
-        tuple = text.partition('Voting for the ')
-        tuple = (tuple[1] + tuple[2]).partition('Voting against ')
-        voting_for = tuple[0].strip()
-        voting_against = tuple[1] + tuple[2]
+# for date, text in date_to_text.items():
+#     if 'Voting for the ' in text:
+#         tuple = text.partition('Voting for the ')
+#         tuple = (tuple[1] + tuple[2]).partition('Voting against ')
+#         voting_for = tuple[0].strip()
+#         voting_against = tuple[1] + tuple[2]
 
-        # universalize the beginning to 'Voting for the FOMC monetary policy action were:'
-        voting_for = re.compile('Voting for(.*)were').sub('Voting for the FOMC monetary policy action were:', voting_for)
-        # bunch of replacements
-        voting_for = voting_for.replace('::', ':').replace('  ', ' ').replace(', Vice Chairman;', ';').replace(', Vice Chair;', ';').replace(', Chairman;', ';').replace(', Chair;', ';').replace(', Chair,', ';').replace(', Jr.', '').replace(', and', ';').replace(',', ';').replace('; and', ';').strip()
-        # remove the beginning
-        voting_for = tokenize.sent_tokenize(voting_for.partition('Voting for the FOMC monetary policy action were: ')[2])[0]
+#         # universalize the beginning to 'Voting for the FOMC monetary policy action were:'
+#         voting_for = re.compile('Voting for(.*)were').sub('Voting for the FOMC monetary policy action were:', voting_for)
+#         # bunch of replacements
+#         voting_for = voting_for.replace('::', ':').replace('  ', ' ').replace(', Vice Chairman;', ';').replace(', Vice Chair;', ';').replace(', Chairman;', ';').replace(', Chair;', ';').replace(', Chair,', ';').replace(', Jr.', '').replace(', and', ';').replace(',', ';').replace('; and', ';').strip()
+#         # remove the beginning
+#         voting_for = tokenize.sent_tokenize(voting_for.partition('Voting for the FOMC monetary policy action were: ')[2])[0]
 
-        # get last names
-        last_name_list = []
-        voting_for = voting_for.split('; ')
-        for name in voting_for:
-            word_in_name_list = name.split(' ')
-            if '' in word_in_name_list:
-                word_in_name_list.remove('')
-            last_name_list.append(word_in_name_list[len(word_in_name_list) - 1]) 
-            parsed_last_name_list = []
-            for last_name in last_name_list:
-                parsed_last_name_list.append(last_name.strip(',.')) 
+#         # get last names
+#         last_name_list = []
+#         voting_for = voting_for.split('; ')
+#         for name in voting_for:
+#             word_in_name_list = name.split(' ')
+#             if '' in word_in_name_list:
+#                 word_in_name_list.remove('')
+#             last_name_list.append(word_in_name_list[len(word_in_name_list) - 1]) 
+#             parsed_last_name_list = []
+#             for last_name in last_name_list:
+#                 parsed_last_name_list.append(last_name.strip(',.')) 
 
-        number_voting_for = len(parsed_last_name_list)
-        voting_for = ', '.join(parsed_last_name_list)
+#         number_voting_for = len(parsed_last_name_list)
+#         voting_for = ', '.join(parsed_last_name_list)
 
-        # remove unnecessary endings
-        voting_against = voting_against.partition(' In taking')[0].partition('In a related action, the Board of Governors ')[0].partition('1. The Open Market Desk will issue a technical note shortly after the statement providing operational details on how it will carry out these transactions.')[0]
-        # split into sentences
-        voting_against = tokenize.sent_tokenize(voting_against)
-        # remove sentences that include the word alternate
-        voting_against_sentence_list = []
-        for sentence in voting_against:
-            if 'alternate' not in sentence:
-                voting_against_sentence_list.append(sentence)
-        voting_against = ' '.join(voting_against_sentence_list)
+#         # remove unnecessary endings
+#         voting_against = voting_against.partition(' In taking')[0].partition('In a related action, the Board of Governors ')[0].partition('1. The Open Market Desk will issue a technical note shortly after the statement providing operational details on how it will carry out these transactions.')[0]
+#         # split into sentences
+#         voting_against = tokenize.sent_tokenize(voting_against)
+#         # remove sentences that include the word alternate
+#         voting_against_sentence_list = []
+#         for sentence in voting_against:
+#             if 'alternate' not in sentence:
+#                 voting_against_sentence_list.append(sentence)
+#         voting_against = ' '.join(voting_against_sentence_list)
 
-        if voting_against == 'Voting against the action: none.':
-            voting_against = ''
+#         if voting_against == 'Voting against the action: none.':
+#             voting_against = ''
 
-        # save the paragraph
-        voting_against_paragraph = voting_against
-        # parse the paragraph to get names
-        voting_against = [x for x in nlp(voting_against).ents if x.label_ == 'PERSON']
+#         # save the paragraph
+#         voting_against_paragraph = voting_against
+#         # parse the paragraph to get names
+#         voting_against = [x for x in nlp(voting_against).ents if x.label_ == 'PERSON']
 
-        # get last names
-        last_name_list = []
-        if voting_against != []:
-            for name in voting_against:
-                word_in_name_list = str(name).split(' ')
-                last_name = word_in_name_list[len(word_in_name_list) - 1]
-                if last_name not in last_name_list:
-                    last_name_list.append(last_name)
-            voting_against = ', '.join(last_name_list)
-        else:
-            voting_against = ''
-        if voting_against == '':
-            number_voting_against = 0
-        else:
-            number_voting_against = len(voting_against.split(', '))
+#         # get last names
+#         last_name_list = []
+#         if voting_against != []:
+#             for name in voting_against:
+#                 word_in_name_list = str(name).split(' ')
+#                 last_name = word_in_name_list[len(word_in_name_list) - 1]
+#                 if last_name not in last_name_list:
+#                     last_name_list.append(last_name)
+#             voting_against = ', '.join(last_name_list)
+#         else:
+#             voting_against = ''
+#         if voting_against == '':
+#             number_voting_against = 0
+#         else:
+#             number_voting_against = len(voting_against.split(', '))
 
-        date_to_text[date] = [number_voting_for, number_voting_against, voting_for, voting_against, voting_against_paragraph]
-    else:
-        date_to_text[date] = ['', '', '', '', '']
+#         date_to_text[date] = [number_voting_for, number_voting_against, voting_for, voting_against, voting_against_paragraph]
+#     else:
+#         date_to_text[date] = ['', '', '', '', '']
 
-date_list = ['FOMC Statement Release Date']
-statement_list = ['Statement Release Time']
-press_conference_list = ['Press Conference Start Time']
-SEP_list = ['SEP Released']
-minutes_list = ['Minutes Release Date']
-internal_material_list = ['Internal Material Released']
-number_voting_for_list = ['Number of Members Voting in Favor']
-number_voting_against_list = ['Number of Members Not in Favor']
-voting_for_list= ['Names in Favor']
-voting_against_list = ['Names Not in Favor']
-voting_against_paragraph_list = ['Reason for Dissent']
+# date_list = ['FOMC Statement Release Date']
+# statement_list = ['Statement Release Time']
+# press_conference_list = ['Press Conference Start Time']
+# SEP_list = ['SEP Released']
+# minutes_list = ['Minutes Release Date']
+# internal_material_list = ['Internal Material Released']
+# number_voting_for_list = ['Number of Members Voting in Favor']
+# number_voting_against_list = ['Number of Members Not in Favor']
+# voting_for_list= ['Names in Favor']
+# voting_against_list = ['Names Not in Favor']
+# voting_against_paragraph_list = ['Reason for Dissent']
 
-for date, text in date_to_text.items():
-    date_list.append(date)
-    if date != '03/18/2020':
-        statement_list.append('02:00 PM')
-        press_conference_list.append(date_to_press_conference[date])
-        SEP_list.append(date_to_SEP[date])
-        minutes_list.append(date_to_minutes[date])
-        internal_material_list.append('01' + '/' + str(int(date.split('/')[-1]) + 6))
-    else:
-        statement_list.append('')
-        press_conference_list.append('')
-        SEP_list.append('')
-        minutes_list.append('')
-        internal_material_list.append('')
-    number_voting_for_list.append(text[0])
-    number_voting_against_list.append(text[1])
-    voting_for_list.append(text[2])
-    voting_against_list.append(text[3])
-    voting_against_paragraph_list.append(text[4])
+# for date, text in date_to_text.items():
+#     date_list.append(date)
+#     if date != '03/18/2020':
+#         statement_list.append('02:00 PM')
+#         press_conference_list.append(date_to_press_conference[date])
+#         SEP_list.append(date_to_SEP[date])
+#         minutes_list.append(date_to_minutes[date])
+#         internal_material_list.append('01' + '/' + str(int(date.split('/')[-1]) + 6))
+#     else:
+#         statement_list.append('')
+#         press_conference_list.append('')
+#         SEP_list.append('')
+#         minutes_list.append('')
+#         internal_material_list.append('')
+#     number_voting_for_list.append(text[0])
+#     number_voting_against_list.append(text[1])
+#     voting_for_list.append(text[2])
+#     voting_against_list.append(text[3])
+#     voting_against_paragraph_list.append(text[4])
 
-try:
-    FOMC_info_release_sheet = sheet.add_worksheet('fomc_info_release', rows = 187, cols = 11)
-    FOMC_info_release_sheet.update_col(1, date_list)
-    FOMC_info_release_sheet.update_col(2, statement_list)
-    FOMC_info_release_sheet.update_col(3, press_conference_list)
-    FOMC_info_release_sheet.update_col(4, SEP_list)
-    FOMC_info_release_sheet.update_col(5, minutes_list)
-    FOMC_info_release_sheet.update_col(6, internal_material_list)
-    FOMC_info_release_sheet.update_col(7, number_voting_for_list)
-    FOMC_info_release_sheet.update_col(8, number_voting_against_list)
-    FOMC_info_release_sheet.update_col(9, voting_for_list)
-    FOMC_info_release_sheet.update_col(10, voting_against_list)
-    FOMC_info_release_sheet.update_col(11, voting_against_paragraph_list)
-    FOMC_info_release_sheet.sort_range(start = 'A2', end = 'K187', basecolumnindex = 0, sortorder = 'ASCENDING')
-    bold = FOMC_info_release_sheet.cell('A1')
-    bold.set_text_format('bold', True)
-    DataRange('A1','K1', worksheet = FOMC_info_release_sheet).apply_format(bold)
-except:
-    pass
+# try:
+#     FOMC_info_release_sheet = sheet.add_worksheet('fomc_info_release', rows = 187, cols = 11)
+#     FOMC_info_release_sheet.update_col(1, date_list)
+#     FOMC_info_release_sheet.update_col(2, statement_list)
+#     FOMC_info_release_sheet.update_col(3, press_conference_list)
+#     FOMC_info_release_sheet.update_col(4, SEP_list)
+#     FOMC_info_release_sheet.update_col(5, minutes_list)
+#     FOMC_info_release_sheet.update_col(6, internal_material_list)
+#     FOMC_info_release_sheet.update_col(7, number_voting_for_list)
+#     FOMC_info_release_sheet.update_col(8, number_voting_against_list)
+#     FOMC_info_release_sheet.update_col(9, voting_for_list)
+#     FOMC_info_release_sheet.update_col(10, voting_against_list)
+#     FOMC_info_release_sheet.update_col(11, voting_against_paragraph_list)
+#     FOMC_info_release_sheet.sort_range(start = 'A2', end = 'K187', basecolumnindex = 0, sortorder = 'ASCENDING')
+#     bold = FOMC_info_release_sheet.cell('A1')
+#     bold.set_text_format('bold', True)
+#     DataRange('A1','K1', worksheet = FOMC_info_release_sheet).apply_format(bold)
+# except:
+#     pass

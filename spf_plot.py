@@ -158,8 +158,6 @@ try:
     Plot('spf_plot_data/Individual_PRGDP.xlsx', 'PRGDP', 'Probability of RGDP Change', False)
     # CPI
     Plot('spf_plot_data/Individual_CPI.xlsx', 'CPI', 'CPI', False)
-    # CPI Growth
-    Plot('spf_plot_data/Individual_CPI.xlsx', 'CPI', 'CPI', True)
     # CORECPI
     Plot('spf_plot_data/Individual_CORECPI.xlsx', 'CORECPI', 'CORECPI', False)
     # PCE
