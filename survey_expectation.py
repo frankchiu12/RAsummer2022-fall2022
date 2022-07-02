@@ -7,12 +7,27 @@ class Survey:
 
         SCE_excel = pd.ExcelFile(SCE_relative_file_path)
         SCE_df = pd.read_excel(SCE_excel, SCE_spreadsheet, skiprows=[0, 1, 2])
-
         SCE_year_month_list = SCE_df.iloc[:, [0]].values.tolist()
         statistic_list = SCE_df.loc[:, SCE_column].tolist()
 
         for i in range(len(SCE_year_month_list)):
             SCE_year_month_list[i] = str(SCE_year_month_list[i][0])[:4] + '-' + str(SCE_year_month_list[i][0])[4:]
+
+        UMSC_df = pd.read_excel('survey_data/sca-tableall-on-2022-Jul-02.xls', usecols = ['Month', 'yyyy', 'px1_med_all'], skiprows = [0])
+        UMNSC_year_list = UMSC_df.yyyy.unique()
+        UMSC_month_list = UMSC_df.Month.unique()
+        UMSC_year_to_month_to_statistic = {}
+
+        for year in UMNSC_year_list:
+            if year not in UMSC_year_to_month_to_statistic:
+                UMSC_year_to_month_to_statistic[year] = {}
+            for month in UMSC_month_list:
+                if month not in UMSC_year_to_month_to_statistic[year]:
+                    UMSC_year_to_month_to_statistic[year][month] = UMSC_df.loc[UMSC_df['yyyy'].eq(year) & UMSC_df['Month'].eq(month)].values
+
+        # numpy
+
+        print(UMSC_year_to_month_to_statistic)
 
         plt.rcParams["figure.figsize"] = [12, 6]
         plt.rcParams["figure.autolayout"] = True
@@ -37,3 +52,4 @@ Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Unemployment Expectations', 'Mean pro
 Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Interest rate expectations', 'Mean probability of higher average interest rate on savings accounts one year from now', 'Interest Rate', 'PROBABILITY OF HIGHER INTEREST RATE NEXT YEAR')
 
 # https://data.sca.isr.umich.edu/subset/codebook.php
+# INEX_MED, UMEX_R, RATEX_R, PX1_MED
