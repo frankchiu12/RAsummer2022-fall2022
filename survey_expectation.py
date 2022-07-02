@@ -21,6 +21,7 @@ class Survey:
         plt.title(variable + ' Survey Data', fontweight = 'bold', backgroundcolor = 'silver')
         plt.xlabel('YEAR_MONTH', labelpad = 10)
         plt.ylabel(y_label, labelpad = 10)
+        # TODO: change
         if SPF_relative_file_path is not None:
             plt.xticks(self.SPF_year_month_list[::8], rotation = 45)
         else:
@@ -134,8 +135,8 @@ Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Inflation expectations', 'Median one-
 # RGDP
 Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Earnings growth', 'Median expected earnings growth', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'inex_med_all', None, None, 'RGDP', 'EXPECTED EARNING/INCOME GROWTH RATE ONE QUARTER AHEAD')
 Survey(None, None, None, None, None, 'spf_plot_data/Individual_RGDP.xlsx', 'RGDP3', 'RGDP', 'EXPECTED RGDP ONE QUARTER AHEAD')
-# unemployment (??)
-Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Unemployment Expectations', 'Mean probability that the U.S. unemployment rate will be higher one year from now', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'umex_u_all', 'survey_data/Individual_PRUNEMP.xlsx', 'PRUNEMP3', 'Unemployment Rate', 'PROBABILITY US UNEMPLOYMENT RATE WILL BE HIGHER NEXT YEAR')
+# unemployment
+Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Unemployment Expectations', 'Mean probability that the U.S. unemployment rate will be higher one year from now', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'umex_u_all', 'survey_data/Individual_PRUNEMP.xlsx', 'PRUNEMP3', 'Unemployment Rate', 'PROBABILITY US UNEMPLOYMENT RATE WILL BE HIGHER NEXT YEAR') # TODO: is this right?
 # interest rate
 Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Interest rate expectations', 'Mean probability of higher average interest rate on savings accounts one year from now', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'ratex_u_all', None, None, 'Interest Rate', 'PROBABILITY OF HIGHER INTEREST RATE NEXT YEAR')
 
