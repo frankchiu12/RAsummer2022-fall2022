@@ -25,12 +25,11 @@ for variable in all_variable:
     if variable.find('equation_type') is not None:
         equation_type = variable.find('equation_type').text
     if variable.find('sector') is not None:
-        sector = variable.find('equation_type').text
+        sector = variable.find('sector').text
+        if 'Expectations' in sector:
+            has_expectations_data = 'true'
     if variable.find('definition') is not None:
         definition = variable.find('definition').text
-        if '(VAR exp.)' in definition:
-            has_expectations_data = 'true'
-
     name_list.append(name)
     equation_type_list.append(equation_type)
     sector_list.append(sector)

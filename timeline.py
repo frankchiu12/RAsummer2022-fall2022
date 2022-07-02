@@ -27,47 +27,48 @@ for date in begin_list:
 
 difference_list = [(i - j).days/365 for i, j in zip(end_list, begin_list)]
 
-event_to_begin = {}
+event_to_begin_date = {}
 event_to_end = {}
-event_to_begin_time = {}
+event_to_begin_decimal = {}
 event_to_difference = {}
 
 for i in range(len(event_list)):
-    if event_list[i] not in event_to_begin:
-        event_to_begin[event_list[i]] = begin_list[i].strftime("%m/%d/%Y")
+    if event_list[i] not in event_to_begin_date:
+        event_to_begin_date[event_list[i]] = begin_list[i].strftime("%m/%d/%Y")
     if event_list[i] not in event_to_end:
         event_to_end[event_list[i]] = end_list[i].strftime("%m/%d/%Y")
-    if event_list[i] not in event_to_begin_time:
-        event_to_begin_time[event_list[i]] = begin_time_list[i]
+    if event_list[i] not in event_to_begin_decimal:
+        event_to_begin_decimal[event_list[i]] = begin_time_list[i]
     if event_list[i] not in event_to_difference:
         event_to_difference[event_list[i]] = difference_list[i]
 
-event_to_end_to_difference = {}
+# sorted based on when the rules were introduced; for rules that all start at the same time, ordered based on when they ended first
+event_to_begin_decimal_and_end_time = {}
 for event in event_list:
-    if event not in event_to_end_to_difference:
-        event_to_end_to_difference[event] = [event_to_end[event], event_to_difference[event]]
+    if event not in event_to_begin_decimal_and_end_time:
+        event_to_begin_decimal_and_end_time[event] = [event_to_begin_decimal[event], event_to_end[event]]
 
-event_to_end_to_difference = dict(sorted(event_to_end_to_difference.items(), key = lambda item: (datetime.strptime(item[1][0], '%m/%d/%Y'), item[1][1]), reverse = True))
+event_to_begin_decimal_and_end_time = dict(sorted(event_to_begin_decimal_and_end_time.items(), key = lambda item: (item[1][0], datetime.strptime(item[1][1], '%m/%d/%Y')), reverse = True))
 
 event_list = []
 begin_list = []
 end_list = []
 begin_time_list = []
 difference_list = []
-for event in event_to_end_to_difference:
+for event in event_to_begin_decimal_and_end_time:
     event_list.append(event)
-    begin_list.append(event_to_begin[event])
+    begin_list.append(event_to_begin_date[event])
     if '12/14/2016' in event_to_end[event]:
         end_list.append(event_to_end[event] + ' (now)')
     else:
         end_list.append(event_to_end[event])
-    begin_time_list.append(event_to_begin_time[event])
+    begin_time_list.append(event_to_begin_decimal[event])
     difference_list.append(event_to_difference[event])
 
 plt.rcParams["figure.figsize"] = [12, 6]
 plt.rcParams["figure.autolayout"] = True
 plt.gcf().canvas.manager.set_window_title('Timeline')
-bar_graph = plt.barh(event_list, difference_list, left = begin_time_list, color = ['springgreen', 'cornflowerblue'])
+bar_graph = plt.barh(event_list, difference_list, left = begin_time_list, color = ['limegreen', 'royalblue'])
 
 i = 0
 for bar in bar_graph:

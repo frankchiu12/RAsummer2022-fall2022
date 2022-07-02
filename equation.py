@@ -6,8 +6,8 @@ import random
 class Equation():
 
     def __init__(self, relative_file_path, statistic):
-        xls = pd.ExcelFile(relative_file_path)
-        self.df = pd.read_excel(xls, statistic).dropna(subset=[statistic + 'F1'])
+        excel = pd.ExcelFile(relative_file_path)
+        self.df = pd.read_excel(excel, statistic).dropna(subset = [statistic + 'F1'])
         self.year_list = self.df.DATE.unique()
         self.year_quarter_to_mean = {}
 
@@ -30,6 +30,7 @@ def taylor_1993_equation(inflation, output_gap):
 def taylor_1999_equation(inflation, output_gap):
     return 1.25 + inflation + 0.5 * (inflation - 2) + output_gap
 
+# TODO: is it 1.25?
 def inertial_taylor_1999_equation(inflation, output_gap, prev_ffr):
     return 0.85 * prev_ffr + 0.15 * (1.25 + inflation + 0.5 * (inflation - 2) + output_gap)
 
@@ -46,7 +47,7 @@ inertial_taylor_1999_list = []
 first_difference_list = []
 
 for i in range(len(gPCPI_list)):
-    random_list.append(random.randint(1,30))
+    random_list.append(random.randint(1, 30))
     taylor_1993_list.append(taylor_1993_equation(gPCPI_list[i], random_list[i]))
     taylor_1999_list.append(taylor_1999_equation(gPCPI_list[i], random_list[i]))
     inertial_taylor_1999_list.append(inertial_taylor_1999_equation(gPCPI_list[i], random_list[i], random_list[i]))

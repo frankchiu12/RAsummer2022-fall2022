@@ -4,12 +4,13 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 import numpy as np
 import matplotlib.gridspec as gridspec
+import warnings
 
 class Plot:
 
     def __init__(self, relative_file_path, statistic, statistic_in_words, is_growth):
 
-        self.df3 = pd.read_excel(relative_file_path).dropna(subset=[statistic + '3'])
+        self.df3 = pd.read_excel(relative_file_path).dropna(subset = [statistic + '3'])
         if is_growth:
             self.df2 = pd.read_excel(relative_file_path)
 
@@ -23,9 +24,9 @@ class Plot:
 
         self.data(statistic, is_growth)
         if (is_growth):
-            self.plot(statistic, statistic_in_words + ' Annualized Growth', is_growth)
+            self.plot(statistic_in_words + ' Annualized Growth')
         else:
-            self.plot(statistic, statistic_in_words, is_growth)
+            self.plot(statistic_in_words)
 
     def data(self, statistic, is_growth):
         # get data of one quarter ahead
@@ -47,7 +48,6 @@ class Plot:
                     self.year_to_quarter_to_statistic[year][quarter] = statistics_list
         else:
             previous_year_to_quarter_to_statistic = {}
-
             for year in self.year_list:
                 if year not in previous_year_to_quarter_to_statistic:
                     previous_year_to_quarter_to_statistic[year] = {}
@@ -88,7 +88,7 @@ class Plot:
             self.percentile_median_list.append(statistic[1])
             self.percentile_75th_list.append(statistic[2])
 
-    def plot(self, statistic, statistic_in_words, is_growth):
+    def plot(self, statistic_in_words):
 
         # NOTE: dark mode: plt.style.use("dark_background")
         plt.rcParams["figure.figsize"] = [13, 6.5]
@@ -99,10 +99,10 @@ class Plot:
 
         gs = gridspec.GridSpec(2, 6)
         plot_25 = plt.subplot(gs[0, 0:2])
-        plot_median = plt.subplot(gs[0,2:4])
-        plot_75 = plt.subplot(gs[0,4:6])
-        plot_comparison = plt.subplot(gs[1,1:3])
-        plot_IQR = plt.subplot(gs[1,3:5])
+        plot_median = plt.subplot(gs[0, 2:4])
+        plot_75 = plt.subplot(gs[0, 4:6])
+        plot_comparison = plt.subplot(gs[1, 1:3])
+        plot_IQR = plt.subplot(gs[1, 3:5])
 
         plot_list = [plot_25, plot_median, plot_75, plot_comparison, plot_IQR]
 
@@ -137,6 +137,7 @@ class Plot:
         plt.show()
 
 os.system('cls' if os.name == 'nt' else 'clear')
+warnings.filterwarnings('ignore', category = UserWarning, module = 'openpyxl')
 # RGDP
 Plot('spf_plot_data/Individual_RGDP.xlsx', 'RGDP', 'RGDP', False)
 # RGDP Growth
