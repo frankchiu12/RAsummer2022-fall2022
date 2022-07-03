@@ -2,32 +2,47 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import math
+from datetime import datetime
 import copy
 import warnings
 
 class Survey:
 
-    def __init__(self, SCE_relative_file_path, SCE_spreadsheet, SCE_column, UMSC_relative_file_path, UMSC_column, SPF_relative_file_path, SPF_column, variable, y_label):
+    def __init__(self, SCE_relative_file_path, SCE_spreadsheet, SCE_column, UMSC_relative_file_path, UMSC_column, SPF_relative_file_path, SPF_column, livingston_relative_file_path, livingston_spreadsheet, livingston_column, variable, y_label):
 
         plt.rcParams["figure.figsize"] = [12, 6]
         plt.rcParams["figure.autolayout"] = True
         plt.gcf().canvas.manager.set_window_title('Survey')
 
+        if livingston_relative_file_path is not None:
+            self.livingston(livingston_relative_file_path, livingston_spreadsheet, livingston_column)
         if SPF_relative_file_path is not None:
             self.SPF(SPF_relative_file_path, SPF_column)
         if UMSC_relative_file_path is not None: 
             self.UMSC(UMSC_relative_file_path, UMSC_column)
         if SCE_relative_file_path is not None: 
             self.SCE(SCE_relative_file_path, SCE_spreadsheet, SCE_column)
-    
+
         plt.title(variable + ' Survey Data', fontweight = 'bold', backgroundcolor = 'silver')
         plt.xlabel('YEAR_MONTH', labelpad = 10)
         plt.ylabel(y_label, labelpad = 10)
-        # TODO: change
+        list_to_use_for_xtick_list = []
+        if livingston_relative_file_path is not None:
+            list_to_use_for_xtick_list.append(self.livingston_year_month_list)
         if SPF_relative_file_path is not None:
-            xtick_list = self.SPF_year_month_list
-        else:
-            xtick_list = self.UMSC_year_month_list
+            list_to_use_for_xtick_list.append(self.SPF_year_month_list)
+        if UMSC_relative_file_path is not None:
+            list_to_use_for_xtick_list.append(self.UMSC_year_month_list)
+        if SCE_relative_file_path is not None:
+            list_to_use_for_xtick_list.append(self.SCE_year_month_list)
+        # TODO: change
+        min = list_to_use_for_xtick_list[0][0]
+        list_to_use = list_to_use_for_xtick_list[0]
+        for list in list_to_use_for_xtick_list:
+            if list[0] < min:
+                min = list[0]
+                list_to_use = list
+        xtick_list = list_to_use
         temp_xtick_list = []
         for xtick in xtick_list:
             frac, whole = math.modf(xtick)
@@ -139,22 +154,37 @@ class Survey:
 
         plt.plot(self.SPF_year_month_list, self.SPF_statistic_list, color = 'red', linewidth = 2, label = 'Survey of Professional Forecasters')
 
+    def livingston(self, livingston_relative_file_path, livingston_spreadsheet, livingston_column):
+        livingston_excel = pd.ExcelFile(livingston_relative_file_path)
+        livingston_df = pd.read_excel(livingston_excel, livingston_spreadsheet).dropna(subset = [livingston_column])
+        self.livingston_year_month_list = livingston_df['Date'].to_list()
+        self.livingston_statistic_list = livingston_df.loc[:, livingston_column].tolist()
+
+        self.livingston_year_month_list = [datetime.strptime(str(x), '%Y-%m-%d %H:%M:%S') for x in self.livingston_year_month_list]
+        self.livingston_year_month_list = [int(x.year) + int(x.month)/12 for x in self.livingston_year_month_list]
+
+        if livingston_spreadsheet == 'CPI':
+            self.livingston_statistic_list = [(int(x) - 100)/10 for x in self.livingston_statistic_list if x is not None]
+
+        plt.plot(self.livingston_year_month_list, self.livingston_statistic_list, color = 'purple', linewidth = 2, label = 'Livingston Survey')
+
+
 warnings.filterwarnings('ignore', category = UserWarning, module = 'openpyxl')
 
 # inflation
-Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Inflation expectations', 'Median one-year ahead expected inflation rate', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'px1_med_all', 'spf_plot_data/Individual_CPI.xlsx', 'CPI6', 'Inflation', 'EXPECTED INFLATION RATE ONE YEAR AHEAD')
+Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Inflation expectations', 'Median one-year ahead expected inflation rate', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'px1_med_all', 'spf_plot_data/Individual_CPI.xlsx', 'CPI6', 'survey_data/medians.xlsx', 'CPI', 'CPI_12M', 'Inflation', 'EXPECTED INFLATION RATE ONE YEAR AHEAD') # TODO: livingston is CPI
 
 # RGDP
-Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Earnings growth', 'Median expected earnings growth', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'inex_med_all', None, None, 'RGDP', 'EXPECTED EARNING/INCOME GROWTH RATE ONE YEAR AHEAD')
-Survey(None, None, None, None, None, 'spf_plot_data/Individual_RGDP.xlsx', 'RGDP3', 'RGDP', 'EXPECTED RGDP ONE QUARTER AHEAD')
+Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Earnings growth', 'Median expected earnings growth', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'inex_med_all', None, None, None, None, None, 'RGDP', 'EXPECTED EARNING/INCOME GROWTH RATE ONE YEAR AHEAD')
+Survey(None, None, None, None, None, 'spf_plot_data/Individual_RGDP.xlsx', 'RGDP6', 'survey_data/medians.xlsx', 'RGDPX', 'RGDPX_12M', 'RGDP', 'EXPECTED RGDP ONE YEAR AHEAD')
 
 # unemployment
-Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Unemployment Expectations', 'Mean probability that the U.S. unemployment rate will be higher one year from now', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'umex_u_all', 'survey_data/Individual_PRUNEMP.xlsx', 'PRUNEMP6', 'Unemployment Rate', 'PROBABILITY US UNEMPLOYMENT RATE WILL BE HIGHER NEXT YEAR') # TODO: is this right?
-Survey(None, None, None, None, None, 'survey_data/Individual_UNEMP.xlsx', 'UNEMP3', 'Unemployment Rate', 'EXPECTED UNEMPLOYMENT RATE ONE QUARTER AHEAD')
+Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Unemployment Expectations', 'Mean probability that the U.S. unemployment rate will be higher one year from now', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'umex_u_all', 'survey_data/Individual_PRUNEMP.xlsx', 'PRUNEMP6', None, None, None, 'Unemployment Rate', 'PROBABILITY US UNEMPLOYMENT RATE WILL BE HIGHER NEXT YEAR') # TODO: is this right?
+Survey(None, None, None, None, None, 'survey_data/Individual_UNEMP.xlsx', 'UNEMP3', 'survey_data/medians.xlsx', 'UNPR', 'UNPR_12M', 'Unemployment Rate', 'EXPECTED UNEMPLOYMENT RATE ONE YEAR AHEAD')
 
 # interest rate
-Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Interest rate expectations', 'Mean probability of higher average interest rate on savings accounts one year from now', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'ratex_u_all', None, None, 'Interest Rate', 'PROBABILITY OF HIGHER INTEREST RATE NEXT YEAR')
-Survey(None, None, None, None, None, 'spf_plot_data/Individual_RR1_TBILL_PGDP.xlsx', 'RR1_TBILL_PGDP_3', 'Interest Rate', 'EXPECTED INTEREST RATE ONE QUARTER AHEAD')
+Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Interest rate expectations', 'Mean probability of higher average interest rate on savings accounts one year from now', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'ratex_u_all', None, None, None, None, None, 'Interest Rate', 'PROBABILITY OF HIGHER INTEREST RATE NEXT YEAR')
+Survey(None, None, None, None, None, 'spf_plot_data/Individual_RR1_TBILL_PGDP.xlsx', 'RR1_TBILL_PGDP_3', 'survey_data/medians.xlsx', 'TBILL', 'TBILL_12M', 'Interest Rate', 'EXPECTED INTEREST RATE ONE QUARTER AHEAD')
 
 # https://data.sca.isr.umich.edu/subset/codebook.php
 # for UMSC: instead of doing probability, I did the number of people who said it'll go higher
