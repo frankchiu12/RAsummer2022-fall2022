@@ -1,7 +1,9 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import math
 import copy
+import warnings
 
 class Survey:
 
@@ -23,9 +25,16 @@ class Survey:
         plt.ylabel(y_label, labelpad = 10)
         # TODO: change
         if SPF_relative_file_path is not None:
-            plt.xticks(self.SPF_year_month_list[::8], rotation = 45)
+            xtick_list = self.SPF_year_month_list
         else:
-            plt.xticks(self.UMSC_year_month_list[::8], rotation = 45)
+            xtick_list = self.UMSC_year_month_list
+        temp_xtick_list = []
+        for xtick in xtick_list:
+            frac, whole = math.modf(xtick)
+            temp_xtick_list.append(str(int(whole)) + '-' + str(int(frac * 12 + 0.1)))
+        plt.xticks(xtick_list[::16])
+        xtick_list = temp_xtick_list
+        plt.gca().set_xticklabels(xtick_list[::16], rotation = 45)
         plt.legend(loc = 'upper right')
         plt.grid()
 
@@ -130,15 +139,22 @@ class Survey:
 
         plt.plot(self.SPF_year_month_list, self.SPF_statistic_list, color = 'red', linewidth = 2, label = 'Survey of Professional Forecasters')
 
+warnings.filterwarnings('ignore', category = UserWarning, module = 'openpyxl')
+
 # inflation
-Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Inflation expectations', 'Median one-year ahead expected inflation rate', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'px1_med_all', 'spf_plot_data/Individual_CPI.xlsx', 'CPI3', 'Inflation', 'EXPECTED INFLATION RATE ONE QUARTER AHEAD')
+Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Inflation expectations', 'Median one-year ahead expected inflation rate', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'px1_med_all', 'spf_plot_data/Individual_CPI.xlsx', 'CPI6', 'Inflation', 'EXPECTED INFLATION RATE ONE YEAR AHEAD')
+
 # RGDP
-Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Earnings growth', 'Median expected earnings growth', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'inex_med_all', None, None, 'RGDP', 'EXPECTED EARNING/INCOME GROWTH RATE ONE QUARTER AHEAD')
+Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Earnings growth', 'Median expected earnings growth', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'inex_med_all', None, None, 'RGDP', 'EXPECTED EARNING/INCOME GROWTH RATE ONE YEAR AHEAD')
 Survey(None, None, None, None, None, 'spf_plot_data/Individual_RGDP.xlsx', 'RGDP3', 'RGDP', 'EXPECTED RGDP ONE QUARTER AHEAD')
+
 # unemployment
-Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Unemployment Expectations', 'Mean probability that the U.S. unemployment rate will be higher one year from now', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'umex_u_all', 'survey_data/Individual_PRUNEMP.xlsx', 'PRUNEMP3', 'Unemployment Rate', 'PROBABILITY US UNEMPLOYMENT RATE WILL BE HIGHER NEXT YEAR') # TODO: is this right?
+Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Unemployment Expectations', 'Mean probability that the U.S. unemployment rate will be higher one year from now', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'umex_u_all', 'survey_data/Individual_PRUNEMP.xlsx', 'PRUNEMP6', 'Unemployment Rate', 'PROBABILITY US UNEMPLOYMENT RATE WILL BE HIGHER NEXT YEAR') # TODO: is this right?
+Survey(None, None, None, None, None, 'survey_data/Individual_UNEMP.xlsx', 'UNEMP3', 'Unemployment Rate', 'EXPECTED UNEMPLOYMENT RATE ONE QUARTER AHEAD')
+
 # interest rate
 Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Interest rate expectations', 'Mean probability of higher average interest rate on savings accounts one year from now', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'ratex_u_all', None, None, 'Interest Rate', 'PROBABILITY OF HIGHER INTEREST RATE NEXT YEAR')
+Survey(None, None, None, None, None, 'spf_plot_data/Individual_RR1_TBILL_PGDP.xlsx', 'RR1_TBILL_PGDP_3', 'Interest Rate', 'EXPECTED INTEREST RATE ONE QUARTER AHEAD')
 
 # https://data.sca.isr.umich.edu/subset/codebook.php
 # for UMSC: instead of doing probability, I did the number of people who said it'll go higher
