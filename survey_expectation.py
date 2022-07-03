@@ -1,8 +1,8 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-import math
 from datetime import datetime
+import math
 import copy
 import warnings
 
@@ -35,18 +35,20 @@ class Survey:
             list_to_use_for_xtick_list.append(self.UMSC_year_month_list)
         if SCE_relative_file_path is not None:
             list_to_use_for_xtick_list.append(self.SCE_year_month_list)
-        # TODO: change
         min = list_to_use_for_xtick_list[0][0]
         list_to_use = list_to_use_for_xtick_list[0]
+
         for list in list_to_use_for_xtick_list:
             if list[0] < min:
                 min = list[0]
                 list_to_use = list
         xtick_list = list_to_use
+
         temp_xtick_list = []
         for xtick in xtick_list:
             frac, whole = math.modf(xtick)
             temp_xtick_list.append(str(int(whole)) + '-' + str(int(frac * 12 + 0.1)))
+
         plt.xticks(xtick_list[::16])
         xtick_list = temp_xtick_list
         plt.gca().set_xticklabels(xtick_list[::16], rotation = 45)
@@ -66,8 +68,8 @@ class Survey:
             year_month = year_month.split('-')
             year_month = int(year_month[0]) + int(year_month[1])/12
             self.SCE_year_month_list[i] = year_month
-    
-        plt.plot(self.SCE_year_month_list, self.SCE_statistic_list, color = 'green', linewidth = 2, label = 'Survey of Consumer Expectations')
+
+        plt.plot(self.SCE_year_month_list, self.SCE_statistic_list, color = 'purple', linewidth = 2, label = 'Survey of Consumer Expectations')
 
     def UMSC(self, UMSC_relative_file_path, UMSC_column):
         UMSC_df = pd.read_excel(UMSC_relative_file_path, usecols = ['Month', 'yyyy', UMSC_column], skiprows = [0])
@@ -106,7 +108,7 @@ class Survey:
             self.UMSC_year_month_list.append(year_month)
             self.UMSC_statistic_list.append(statistic)
 
-        plt.plot(self.UMSC_year_month_list, self.UMSC_statistic_list, color = 'blue', linewidth = 2, label = 'University of Michigan Survey of Consumers')
+        plt.plot(self.UMSC_year_month_list, self.UMSC_statistic_list, color = 'green', linewidth = 2, label = 'University of Michigan Survey of Consumers')
 
     def SPF(self, SPF_relative_file_path, SPF_column):
         SPF_df = pd.read_excel(SPF_relative_file_path).dropna(subset = SPF_column)
@@ -145,14 +147,14 @@ class Survey:
                 if year_month not in SPF_year_month_to_statistic:
                     if len(SPF_year_to_quarter_to_statistic[year][quarter]) > 0:
                         SPF_year_month_to_statistic[year_month] = SPF_year_to_quarter_to_statistic[year][quarter]
-        
+
         self.SPF_year_month_list = []
         self.SPF_statistic_list = []
         for year_month, statistic in SPF_year_month_to_statistic.items():
             self.SPF_year_month_list.append(year_month)
             self.SPF_statistic_list.append(statistic)
 
-        plt.plot(self.SPF_year_month_list, self.SPF_statistic_list, color = 'red', linewidth = 2, label = 'Survey of Professional Forecasters')
+        plt.plot(self.SPF_year_month_list, self.SPF_statistic_list, color = 'blue', linewidth = 2, label = 'Survey of Professional Forecasters')
 
     def livingston(self, livingston_relative_file_path, livingston_spreadsheet, livingston_column):
         livingston_excel = pd.ExcelFile(livingston_relative_file_path)
@@ -166,8 +168,7 @@ class Survey:
         if livingston_spreadsheet == 'CPI':
             self.livingston_statistic_list = [(int(x) - 100)/10 for x in self.livingston_statistic_list if x is not None]
 
-        plt.plot(self.livingston_year_month_list, self.livingston_statistic_list, color = 'purple', linewidth = 2, label = 'Livingston Survey')
-
+        plt.plot(self.livingston_year_month_list, self.livingston_statistic_list, color = 'red', linewidth = 2, label = 'Livingston Survey')
 
 warnings.filterwarnings('ignore', category = UserWarning, module = 'openpyxl')
 
