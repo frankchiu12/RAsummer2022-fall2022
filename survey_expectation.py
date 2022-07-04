@@ -201,7 +201,7 @@ Survey(None, None, None, None, None, 'spf_plot_data/Individual_RGDP.xlsx', 'RGDP
 
 # unemployment
 Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Unemployment Expectations', 'Mean probability that the U.S. unemployment rate will be higher one year from now', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'umex_u_all', 'survey_data/Individual_PRUNEMP.xlsx', 'PRUNEMP6', None, None, None, None, None, None, 'Unemployment Rate', 'PROBABILITY US UNEMPLOYMENT RATE WILL BE HIGHER NEXT YEAR') # TODO: is this right?
-Survey(None, None, None, None, None, 'survey_data/Individual_UNEMP.xlsx', 'UNEMP3', 'survey_data/medians.xlsx', 'UNPR', 'UNPR_12M', 'GBweb_Row_Format.xlsx', 'UNEMP', 'UNEMPF4', 'Unemployment Rate', 'EXPECTED UNEMPLOYMENT RATE ONE YEAR AHEAD')
+Survey(None, None, None, None, None, 'survey_data/Individual_UNEMP.xlsx', 'UNEMP6', 'survey_data/medians.xlsx', 'UNPR', 'UNPR_12M', 'GBweb_Row_Format.xlsx', 'UNEMP', 'UNEMPF4', 'Unemployment Rate', 'EXPECTED UNEMPLOYMENT RATE ONE YEAR AHEAD')
 
 # interest rate
 Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Interest rate expectations', 'Mean probability of higher average interest rate on savings accounts one year from now', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'ratex_u_all', None, None, None, None, None, None, None, None, 'Interest Rate', 'PROBABILITY OF HIGHER INTEREST RATE NEXT YEAR')
