@@ -8,7 +8,7 @@ import warnings
 
 class Survey:
 
-    def __init__(self, SCE_relative_file_path, SCE_spreadsheet, SCE_column, UMSC_relative_file_path, UMSC_column, SPF_relative_file_path, SPF_column, livingston_relative_file_path, livingston_spreadsheet, livingston_column, FOMC_relative_file_path, FOMC_spreadsheet, FOMC_column, variable, y_label):
+    def __init__(self, SCE_relative_file_path, SCE_spreadsheet, SCE_column, UMSC_relative_file_path, UMSC_column, SPF_relative_file_path, SPF_column, livingston_relative_file_path, livingston_spreadsheet, livingston_column, FOMC_relative_file_path, FOMC_spreadsheet, FOMC_column, SEP_relative_file_path, SEP_column, has_long_base, variable, y_label):
 
         plt.rcParams["figure.figsize"] = [12, 6]
         plt.rcParams["figure.autolayout"] = True
@@ -30,6 +30,9 @@ class Survey:
         if SCE_relative_file_path is not None: 
             self.SCE(SCE_relative_file_path, SCE_spreadsheet, SCE_column)
             list_to_use_for_xtick_list.append(self.SCE_year_month_list)
+        if SEP_relative_file_path is not None:
+            self.SEP(SEP_relative_file_path, SEP_column)
+            list_to_use_for_xtick_list.append(self.SEP_year_month_list)
 
         plt.title(variable + ' Survey Data', fontweight = 'bold', backgroundcolor = 'silver')
         plt.xlabel('YEAR_MONTH', labelpad = 10)
@@ -191,7 +194,6 @@ class Survey:
             for i in range(1, len(self.livingston_statistic_list)):
                 temp_livingston_statistic_list.append((self.livingston_statistic_list[i] - self.livingston_statistic_list[i - 1])/self.livingston_statistic_list[i - 1] * 100)
             self.livingston_statistic_list = temp_livingston_statistic_list
-            print(self.livingston_statistic_list)
 
         plt.plot(self.livingston_year_month_list, self.livingston_statistic_list, color = 'blue', linewidth = 2, label = 'Livingston Survey')
 
@@ -216,21 +218,33 @@ class Survey:
 
         plt.plot(self.FOMC_year_month_list, self.FOMC_statistic_list, color = 'red', linewidth = 2, label = 'Tealbook Dataset')
 
+    def SEP(self, SEP_relative_file_path, SEP_column):
+        SEP_df = pd.read_excel(SEP_relative_file_path, usecols = ['meetingDate', SEP_column])
+        self.SEP_year_month_list = SEP_df['meetingDate'].to_list()
+        self.SEP_statistic_list = SEP_df[SEP_column].to_list()
+        for i in range(len(self.SEP_year_month_list)):
+            if isinstance(self.SEP_year_month_list[i], datetime):
+                self.SEP_year_month_list[i] = self.SEP_year_month_list[i].year + self.SEP_year_month_list[i].month/12
+            else:
+                self.SEP_year_month_list[i] = int(self.SEP_year_month_list[i].split('/')[2]) + int(self.SEP_year_month_list[i].split('/')[1])/12
+
+        plt.plot(self.SEP_year_month_list, self.SEP_statistic_list, color = 'gray', linewidth = 2, label = 'SEP')
+
 warnings.filterwarnings('ignore', category = UserWarning, module = 'openpyxl')
 
 # inflation
-Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Inflation expectations', 'Median one-year ahead expected inflation rate', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'px1_med_all', 'spf_plot_data/Individual_CPI.xlsx', 'CPI6', 'survey_data/medians.xlsx', 'CPI', 'CPI_1Y', 'GBweb_Row_Format.xlsx', 'gPCPI', 'gPCPIF4', 'Inflation', 'EXPECTED INFLATION RATE ONE YEAR AHEAD') # TODO: Dec87
+Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Inflation expectations', 'Median one-year ahead expected inflation rate', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'px1_med_all', 'spf_plot_data/Individual_CPI.xlsx', 'CPI6', 'survey_data/medians.xlsx', 'CPI', 'CPI_1Y', 'GBweb_Row_Format.xlsx', 'gPCPI', 'gPCPIF4','survey_data/table1.xlsx', 'PCEInflation_t0', False, 'Inflation', 'EXPECTED INFLATION RATE ONE YEAR AHEAD') # TODO: Dec87
 
 # RGDP
-Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Earnings growth', 'Median expected earnings growth', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'inex_med_all', None, None, None, None, None, None, None, None, 'NGDP', 'EXPECTED EARNING/INCOME GROWTH RATE ONE YEAR AHEAD')
-Survey(None, None, None, None, None, 'spf_plot_data/Individual_RGDP.xlsx', 'RGDP6', 'survey_data/medians.xlsx', 'RGDPX', 'RGDPX_1Y', 'GBweb_Row_Format.xlsx', 'gRGDP', 'gRGDPF4', 'RGDP', 'EXPECTED RGDP ONE YEAR AHEAD') # TODO: Dec85
+Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Earnings growth', 'Median expected earnings growth', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'inex_med_all', None, None, None, None, None, None, None, None, None, None, False, 'NGDP', 'EXPECTED EARNING/INCOME GROWTH RATE ONE YEAR AHEAD')
+Survey(None, None, None, None, None, 'spf_plot_data/Individual_RGDP.xlsx', 'RGDP6', 'survey_data/medians.xlsx', 'RGDPX', 'RGDPX_1Y', 'GBweb_Row_Format.xlsx', 'gRGDP', 'gRGDPF4', 'survey_data/table1.xlsx', 'ChangeinRealGDP_t0', False, 'RGDP', 'EXPECTED RGDP ONE YEAR AHEAD') # TODO: Dec85
 
 # unemployment
-Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Unemployment Expectations', 'Mean probability that the U.S. unemployment rate will be higher one year from now', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'umex_u_all', None, None, None, None, None, None, None, None, 'Unemployment Rate', 'PROBABILITY US UNEMPLOYMENT RATE WILL BE HIGHER NEXT YEAR')
-Survey(None, None, None, None, None, 'survey_data/Individual_UNEMP.xlsx', 'UNEMP6', 'survey_data/medians.xlsx', 'UNPR', 'UNPR_1Y', 'GBweb_Row_Format.xlsx', 'UNEMP', 'UNEMPF4', 'Unemployment Rate', 'EXPECTED UNEMPLOYMENT RATE ONE YEAR AHEAD')
+Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Unemployment Expectations', 'Mean probability that the U.S. unemployment rate will be higher one year from now', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'umex_u_all', None, None, None, None, None, None, None, None, None, None, False, 'Unemployment Rate', 'PROBABILITY US UNEMPLOYMENT RATE WILL BE HIGHER NEXT YEAR')
+Survey(None, None, None, None, None, 'survey_data/Individual_UNEMP.xlsx', 'UNEMP6', 'survey_data/medians.xlsx', 'UNPR', 'UNPR_1Y', 'GBweb_Row_Format.xlsx', 'UNEMP', 'UNEMPF4', 'survey_data/table1.xlsx', 'UnemploymentRate_t0', False, 'Unemployment Rate', 'EXPECTED UNEMPLOYMENT RATE ONE YEAR AHEAD')
 
 # interest rate
-Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Interest rate expectations', 'Mean probability of higher average interest rate on savings accounts one year from now', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'ratex_u_all', None, None, None, None, None, None, None, None, 'Interest Rate', 'PROBABILITY OF HIGHER INTEREST RATE NEXT YEAR')
-Survey(None, None, None, None, None, 'spf_plot_data/Individual_RR1_TBILL_PGDP.xlsx', 'RR1_TBILL_PGDP_6', 'survey_data/medians.xlsx', 'TBILL', 'TBILL_1Y', None, None, None, 'Interest Rate', 'EXPECTED INTEREST RATE ONE YEAR AHEAD') # TODO: try longbase/hist data zrff5; table 1 v5
+Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Interest rate expectations', 'Mean probability of higher average interest rate on savings accounts one year from now', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'ratex_u_all', None, None, None, None, None, None, None, None, None, None, False, 'Interest Rate', 'PROBABILITY OF HIGHER INTEREST RATE NEXT YEAR')
+Survey(None, None, None, None, None, 'spf_plot_data/Individual_RR1_TBILL_PGDP.xlsx', 'RR1_TBILL_PGDP_6', 'survey_data/medians.xlsx', 'TBILL', 'TBILL_1Y', None, None, None, 'survey_data/table1.xlsx', 'FederalFundsRate_t0', False, 'Interest Rate', 'EXPECTED INTEREST RATE ONE YEAR AHEAD') # TODO: try longbase/hist data zrff5
 
-# TODO: do t0 column on table 1 for all of the different variables
+# TODO: color scheme
