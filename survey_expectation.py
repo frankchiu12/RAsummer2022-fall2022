@@ -110,8 +110,8 @@ class Survey:
         plt.plot(self.UMSC_year_month_list, self.UMSC_statistic_list, color = 'purple', linewidth = 2, label = 'University of Michigan Survey of Consumers')
 
     def SPF(self, SPF_relative_file_path, SPF_column):
-        SPF_df = pd.read_excel(SPF_relative_file_path).dropna(subset = SPF_column)
-        SPF_year_list = SPF_df.YEAR.unique()
+        SPF_df1 = pd.read_excel(SPF_relative_file_path).dropna(subset = SPF_column)
+        SPF_year_list = SPF_df1.YEAR.unique()
         SPF_quarter_list = [1, 2, 3, 4]
         SPF_year_to_quarter_to_statistic = {}
         self.SPF_year_month_list = []
@@ -122,14 +122,36 @@ class Survey:
                 SPF_year_to_quarter_to_statistic[year] = {}
             for quarter in SPF_quarter_list:
                 if quarter not in SPF_year_to_quarter_to_statistic[year]:
-                    SPF_year_to_quarter_to_statistic[year][quarter] = SPF_df.loc[SPF_df['YEAR'].eq(year) & SPF_df['QUARTER'].eq(quarter)][SPF_column].tolist()
+                    SPF_year_to_quarter_to_statistic[year][quarter] = SPF_df1.loc[SPF_df1['YEAR'].eq(year) & SPF_df1['QUARTER'].eq(quarter)][SPF_column].tolist()
 
-        for year in SPF_year_to_quarter_to_statistic:
-            for quarter in SPF_year_to_quarter_to_statistic[year]:
-                statistics_list = []
-                if len(SPF_year_to_quarter_to_statistic[year][quarter]) > 0:
-                    statistics_list = [np.percentile(SPF_year_to_quarter_to_statistic[year][quarter], 50, method = 'midpoint')]
-                SPF_year_to_quarter_to_statistic[year][quarter] = statistics_list
+        if SPF_column == 'RGDP6':  
+            SPF_df2 = pd.read_excel(SPF_relative_file_path)
+            SPF_previous_year_to_quarter_to_statistic = {}
+            for year in SPF_year_list:
+                if year not in SPF_previous_year_to_quarter_to_statistic:
+                    SPF_previous_year_to_quarter_to_statistic[year] = {}
+                for quarter in SPF_quarter_list:
+                    if quarter not in SPF_previous_year_to_quarter_to_statistic[year]:
+                        SPF_previous_year_to_quarter_to_statistic[year][quarter] = SPF_df2.loc[SPF_df2['YEAR'].eq(year) & SPF_df2['QUARTER'].eq(quarter)]['RGDP5'].fillna('').tolist()
+
+            for year in SPF_year_to_quarter_to_statistic:
+                for quarter in SPF_year_to_quarter_to_statistic[year]:  
+                    statistics_list = []
+                    if len(SPF_year_to_quarter_to_statistic[year][quarter]) > 0 and len(SPF_previous_year_to_quarter_to_statistic[year][quarter]) > 0:
+                        growth_expectation_list = []
+                        for i in range(len(SPF_year_to_quarter_to_statistic[year][quarter])):
+                            try:
+                                growth_expectation_list.append(100 * ((SPF_year_to_quarter_to_statistic[year][quarter][i]/SPF_previous_year_to_quarter_to_statistic[year][quarter][i]) ** 4 - 1))
+                            except TypeError:
+                                continue
+                        statistics_list = [np.percentile(growth_expectation_list, 50, method = 'midpoint')]
+                    SPF_year_to_quarter_to_statistic[year][quarter] = statistics_list
+        else:
+            for year in SPF_year_to_quarter_to_statistic:
+                for quarter in SPF_year_to_quarter_to_statistic[year]:
+                    if len(SPF_year_to_quarter_to_statistic[year][quarter]) > 0:
+                        statistics_list = [np.percentile(SPF_year_to_quarter_to_statistic[year][quarter], 50, method = 'midpoint')]
+                        SPF_year_to_quarter_to_statistic[year][quarter] = statistics_list
 
         SPF_year_month_to_statistic = {}
         for year in SPF_year_to_quarter_to_statistic:
@@ -164,8 +186,12 @@ class Survey:
         self.livingston_year_month_list = [datetime.strptime(str(x), '%Y-%m-%d %H:%M:%S') for x in self.livingston_year_month_list]
         self.livingston_year_month_list = [int(x.year) + int(x.month)/12 for x in self.livingston_year_month_list]
 
-        if livingston_spreadsheet == 'CPI':
-            self.livingston_statistic_list = [(int(x) - 100)/10 for x in self.livingston_statistic_list if x is not None]
+        if livingston_spreadsheet == 'CPI' or livingston_spreadsheet == 'RGDPX':
+            temp_livingston_statistic_list = [0]
+            for i in range(1, len(self.livingston_statistic_list)):
+                temp_livingston_statistic_list.append((self.livingston_statistic_list[i] - self.livingston_statistic_list[i - 1])/self.livingston_statistic_list[i - 1] * 100)
+            self.livingston_statistic_list = temp_livingston_statistic_list
+            print(self.livingston_statistic_list)
 
         plt.plot(self.livingston_year_month_list, self.livingston_statistic_list, color = 'blue', linewidth = 2, label = 'Livingston Survey')
 
@@ -193,19 +219,18 @@ class Survey:
 warnings.filterwarnings('ignore', category = UserWarning, module = 'openpyxl')
 
 # inflation
-Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Inflation expectations', 'Median one-year ahead expected inflation rate', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'px1_med_all', 'spf_plot_data/Individual_CPI.xlsx', 'CPI6', 'survey_data/medians.xlsx', 'CPI', 'CPI_12M', 'GBweb_Row_Format.xlsx', 'gPCPI', 'gPCPIF4', 'Inflation', 'EXPECTED INFLATION RATE ONE YEAR AHEAD') # TODO: livingston is CPI
+Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Inflation expectations', 'Median one-year ahead expected inflation rate', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'px1_med_all', 'spf_plot_data/Individual_CPI.xlsx', 'CPI6', 'survey_data/medians.xlsx', 'CPI', 'CPI_1Y', 'GBweb_Row_Format.xlsx', 'gPCPI', 'gPCPIF4', 'Inflation', 'EXPECTED INFLATION RATE ONE YEAR AHEAD') # TODO: Dec87
 
 # RGDP
-Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Earnings growth', 'Median expected earnings growth', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'inex_med_all', None, None, None, None, None, None, None, None, 'RGDP', 'EXPECTED EARNING/INCOME GROWTH RATE ONE YEAR AHEAD') # Tealbook is growth
-Survey(None, None, None, None, None, 'spf_plot_data/Individual_RGDP.xlsx', 'RGDP6', 'survey_data/medians.xlsx', 'RGDPX', 'RGDPX_12M', 'GBweb_Row_Format.xlsx', 'gRGDP', 'gRGDPF4', 'RGDP', 'EXPECTED RGDP ONE YEAR AHEAD')
+Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Earnings growth', 'Median expected earnings growth', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'inex_med_all', None, None, None, None, None, None, None, None, 'NGDP', 'EXPECTED EARNING/INCOME GROWTH RATE ONE YEAR AHEAD')
+Survey(None, None, None, None, None, 'spf_plot_data/Individual_RGDP.xlsx', 'RGDP6', 'survey_data/medians.xlsx', 'RGDPX', 'RGDPX_1Y', 'GBweb_Row_Format.xlsx', 'gRGDP', 'gRGDPF4', 'RGDP', 'EXPECTED RGDP ONE YEAR AHEAD') # TODO: Dec85
 
 # unemployment
-Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Unemployment Expectations', 'Mean probability that the U.S. unemployment rate will be higher one year from now', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'umex_u_all', 'survey_data/Individual_PRUNEMP.xlsx', 'PRUNEMP6', None, None, None, None, None, None, 'Unemployment Rate', 'PROBABILITY US UNEMPLOYMENT RATE WILL BE HIGHER NEXT YEAR') # TODO: is this right?
-Survey(None, None, None, None, None, 'survey_data/Individual_UNEMP.xlsx', 'UNEMP6', 'survey_data/medians.xlsx', 'UNPR', 'UNPR_12M', 'GBweb_Row_Format.xlsx', 'UNEMP', 'UNEMPF4', 'Unemployment Rate', 'EXPECTED UNEMPLOYMENT RATE ONE YEAR AHEAD')
+Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Unemployment Expectations', 'Mean probability that the U.S. unemployment rate will be higher one year from now', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'umex_u_all', None, None, None, None, None, None, None, None, 'Unemployment Rate', 'PROBABILITY US UNEMPLOYMENT RATE WILL BE HIGHER NEXT YEAR')
+Survey(None, None, None, None, None, 'survey_data/Individual_UNEMP.xlsx', 'UNEMP6', 'survey_data/medians.xlsx', 'UNPR', 'UNPR_1Y', 'GBweb_Row_Format.xlsx', 'UNEMP', 'UNEMPF4', 'Unemployment Rate', 'EXPECTED UNEMPLOYMENT RATE ONE YEAR AHEAD')
 
 # interest rate
 Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Interest rate expectations', 'Mean probability of higher average interest rate on savings accounts one year from now', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'ratex_u_all', None, None, None, None, None, None, None, None, 'Interest Rate', 'PROBABILITY OF HIGHER INTEREST RATE NEXT YEAR')
-Survey(None, None, None, None, None, 'spf_plot_data/Individual_RR1_TBILL_PGDP.xlsx', 'RR1_TBILL_PGDP_3', 'survey_data/medians.xlsx', 'TBILL', 'TBILL_12M', None, None, None, 'Interest Rate', 'EXPECTED INTEREST RATE ONE QUARTER AHEAD')
+Survey(None, None, None, None, None, 'spf_plot_data/Individual_RR1_TBILL_PGDP.xlsx', 'RR1_TBILL_PGDP_6', 'survey_data/medians.xlsx', 'TBILL', 'TBILL_1Y', None, None, None, 'Interest Rate', 'EXPECTED INTEREST RATE ONE YEAR AHEAD') # TODO: try longbase/hist data zrff5; table 1 v5
 
-# https://data.sca.isr.umich.edu/subset/codebook.php
-# for UMSC: instead of doing probability, I did the number of people who said it'll go higher
+# TODO: do t0 column on table 1 for all of the different variables
