@@ -51,12 +51,40 @@ for i in range(len(FOMC_GB_date_list)):
 
 output_gap_df = output_gap_df.transpose()
 
+def taylor_1993_equation(inflation, output_gap):
+    return 1.25 + inflation + 0.5 * (inflation - 2) + 0.5 * output_gap
+
+def taylor_1999_equation(inflation, output_gap):
+    return 1.25 + inflation + 0.5 * (inflation - 2) + output_gap
+
+date_to_taylor_1993 = {}
+date_to_taylor_1999 = {}
 for column in column_name_list:
     CPI_list = GB_date_to_CPI[column]
     output_gap_list = output_gap_df[column].tolist()
     output_gap_list = [x for x in output_gap_list if isinstance(x, float)]
-    print(CPI_list)
-    print(output_gap_list)
+    max_length = max(len(CPI_list), len(output_gap_list))
 
-def taylor_1993_equation(inflation, output_gap):
-    return 1.25 + inflation + 0.5 * (inflation - 2) + 0.5 * output_gap
+    if column not in date_to_taylor_1993:
+        date_to_taylor_1993[column] = []
+        for i in range(max_length):
+            try:
+                date_to_taylor_1993[column].append(taylor_1993_equation(CPI_list[i], output_gap_list[i]))
+            except IndexError:
+                break
+
+    if column not in date_to_taylor_1999:
+        date_to_taylor_1999[column] = []
+        for i in range(max_length):
+            try:
+                date_to_taylor_1999[column].append(taylor_1999_equation(CPI_list[i], output_gap_list[i]))
+            except IndexError:
+                break
+
+FOMC_excel = pd.ExcelFile('GBweb_Row_Format.xlsx')
+CPI_df = pd.read_excel(FOMC_excel, 'gPCPI')
+FOMC_GB_date_list = CPI_df['GBdate'].values.tolist()
+FOMC_GB_date_list = [datetime.strptime(str(x), '%Y%m%d') for x in FOMC_GB_date_list]
+
+print(date_to_taylor_1993)
+print(date_to_taylor_1999)
