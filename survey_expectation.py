@@ -1,3 +1,4 @@
+from ast import Not
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -33,6 +34,9 @@ class Survey:
         if SEP_relative_file_path is not None:
             self.SEP(SEP_relative_file_path, SEP_column)
             list_to_use_for_xtick_list.append(self.SEP_year_month_list)
+        if has_long_base:
+            self.long_base()
+            list_to_use_for_xtick_list.append(self.long_base_year_month_list)
 
         plt.title(variable + ' Survey Data', fontweight = 'bold', backgroundcolor = 'silver')
         plt.xlabel('YEAR_MONTH', labelpad = 10)
@@ -230,6 +234,33 @@ class Survey:
 
         plt.plot(self.SEP_year_month_list, self.SEP_statistic_list, color = 'gray', linewidth = 2, label = 'SEP')
 
+    def long_base(self):
+        long_base_pd = pd.read_csv('pyfrbus_package/data/LONGBASE.TXT', usecols = ['OBS', 'ZRFF5']).dropna(subset = 'ZRFF5')
+        self.long_base_year_month_list = long_base_pd['OBS'].tolist()
+        self.long_base_statistic_list = long_base_pd['ZRFF5'].tolist()
+
+        index_to_stop = None
+        for i in range(len(self.long_base_year_month_list)):
+            year = int(self.long_base_year_month_list[i][:4])
+            month = self.long_base_year_month_list[i][4:]
+            if year > 2022:
+                index_to_stop = i
+                break
+            if month == 'Q1':
+                month = 1
+            elif month == 'Q2':
+                month = 4
+            elif month == 'Q3':
+                month = 7
+            elif month == 'Q4':
+                month = 10
+            self.long_base_year_month_list[i] = year + month/12
+
+        self.long_base_year_month_list = [x for x in self.long_base_year_month_list if isinstance(x, float)]
+        self.long_base_statistic_list = self.long_base_statistic_list[:index_to_stop]
+
+        plt.plot(self.long_base_year_month_list, self.long_base_statistic_list, color = 'yellow', linewidth = 2, label = 'LONGBASE')
+
 warnings.filterwarnings('ignore', category = UserWarning, module = 'openpyxl')
 
 # inflation
@@ -245,6 +276,6 @@ Survey(None, None, None, None, None, 'survey_data/Individual_UNEMP.xlsx', 'UNEMP
 
 # interest rate
 Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Interest rate expectations', 'Mean probability of higher average interest rate on savings accounts one year from now', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'ratex_u_all', None, None, None, None, None, None, None, None, None, None, False, 'Interest Rate', 'PROBABILITY OF HIGHER INTEREST RATE NEXT YEAR')
-Survey(None, None, None, None, None, 'spf_plot_data/Individual_RR1_TBILL_PGDP.xlsx', 'RR1_TBILL_PGDP_6', 'survey_data/medians.xlsx', 'TBILL', 'TBILL_1Y', None, None, None, 'survey_data/table1.xlsx', 'FederalFundsRate_t0', False, 'Interest Rate', 'EXPECTED INTEREST RATE ONE YEAR AHEAD') # TODO: try longbase/hist data zrff5
+Survey(None, None, None, None, None, 'spf_plot_data/Individual_RR1_TBILL_PGDP.xlsx', 'RR1_TBILL_PGDP_6', 'survey_data/medians.xlsx', 'TBILL', 'TBILL_1Y', None, None, None, 'survey_data/table1.xlsx', 'FederalFundsRate_t0', True, 'Interest Rate', 'EXPECTED INTEREST RATE ONE YEAR AHEAD')
 
 # TODO: color scheme
