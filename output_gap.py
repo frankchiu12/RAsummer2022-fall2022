@@ -59,6 +59,12 @@ def taylor_1999_equation(inflation, output_gap):
     except TypeError:
         return ''
 
+def inertial_taylor_1999_equation(inflation, output_gap, prev_ffr):
+    try:
+        return 0.85 * prev_ffr + 0.15 * (1.25 + inflation + 0.5 * (inflation - 2) + output_gap)
+    except TypeError:
+        return ''
+
 date_to_taylor_1993 = {}
 date_to_taylor_1999 = {}
 output_gap_df = output_gap_df.transpose()
@@ -89,6 +95,28 @@ for meeting_date in meeting_date_list:
                 if pd.isna(output_gap_list[i]):
                     output_gap_list[i] = ''
                 date_to_taylor_1999[meeting_date].append(taylor_1999_equation(CPI_list[i], output_gap_list[i]))
+            except IndexError:
+                break
+
+date_to_inertial_taylor_1999 = {}
+for i in range(len(meeting_date_list)):
+    CPI_list = GB_date_to_CPI[meeting_date_list[i]]
+    meeting_date_list[i] = datetime.strftime(meeting_date_list[i], '%m/%d/%Y')
+    output_gap_list = [x for x in output_gap_df[meeting_date_list[i]].tolist() if isinstance(x, float)]
+    max_length = max(len(CPI_list), len(output_gap_list))
+
+    if meeting_date_list[i] not in date_to_inertial_taylor_1999:
+        date_to_inertial_taylor_1999[meeting_date_list[i]] = []
+        for j in range(max_length):
+            try:
+                if j == 0:
+                    date_to_inertial_taylor_1999[meeting_date_list[i]].append('')
+                    continue
+                if pd.isna(CPI_list[j]):
+                    CPI_list[j] = ''
+                if pd.isna(output_gap_list[j]):
+                    output_gap_list[j] = ''
+                date_to_inertial_taylor_1999[meeting_date_list[i]].append(inertial_taylor_1999_equation(CPI_list[j], output_gap_list[j], date_to_taylor_1999[meeting_date_list[i]][j - 1]))
             except IndexError:
                 break
 
@@ -134,3 +162,4 @@ def write_to_google_sheets(dictionary, worksheet):
 
 write_to_google_sheets(date_to_taylor_1993, 'taylor_1993_projections')
 write_to_google_sheets(date_to_taylor_1999, 'taylor_1999_projections')
+write_to_google_sheets(date_to_inertial_taylor_1999, 'inertial_taylor_1999_projections')
