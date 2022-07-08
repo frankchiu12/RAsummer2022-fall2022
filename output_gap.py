@@ -1,6 +1,7 @@
 import pandas as pd
 from datetime import datetime
 import pygsheets
+import matplotlib.pyplot as plt
 
 sheet = pygsheets.authorize(service_account_file = 'write_into_google_sheet.json').open('Summer RA')
 output_gap_df = pd.read_excel('Greenbook_Output_Gap_DH_Web.xlsx')
@@ -163,3 +164,25 @@ def write_to_google_sheets(dictionary, worksheet):
 write_to_google_sheets(date_to_taylor_1993, 'taylor_1993_projections')
 write_to_google_sheets(date_to_taylor_1999, 'taylor_1999_projections')
 write_to_google_sheets(date_to_inertial_taylor_1999, 'inertial_taylor_1999_projections')
+
+def quarter_ahead_expectations(dictionary, quarter_ahead):
+    quarter_ahead_expectations_list = []
+    for date, predicted_ffr in dictionary.items():
+        quarter_ahead_expectations_list.append(predicted_ffr[quarter_ahead])
+    return quarter_ahead_expectations_list
+
+plt.rcParams["figure.figsize"] = [12, 6]
+plt.rcParams["figure.autolayout"] = True
+plt.gcf().canvas.manager.set_window_title('FOMC Equations')
+plt.plot(meeting_date_list, quarter_ahead_expectations(date_to_taylor_1993, 1), color = 'red', linewidth = 2, label = 'Taylor 1993 Rule')
+plt.plot(meeting_date_list, quarter_ahead_expectations(date_to_taylor_1999, 1), color = 'blue', linewidth = 2, label = 'Taylor 1999 Rule')
+plt.plot(meeting_date_list, quarter_ahead_expectations(date_to_inertial_taylor_1999, 1), color = 'green', linewidth = 2, label = 'Inertial Taylor 1999 Rule')
+# TODO: how many quarters ahead?
+plt.title('Comparison of Projected FFR by FOMC Equations', fontweight = 'bold', backgroundcolor = 'silver')
+plt.xlabel('MEETING DATE')
+plt.ylabel('ESTIMATED FFR')
+plt.xticks(meeting_date_list[::8], rotation = 45)
+plt.legend(loc = 'upper right')
+plt.grid()
+
+plt.show()
