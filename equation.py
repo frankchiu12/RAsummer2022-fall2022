@@ -1,3 +1,4 @@
+from cProfile import label
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -61,8 +62,8 @@ plt.plot(year_quarter_list, taylor_1999_list, color = 'blue', linewidth = 2, lab
 plt.plot(year_quarter_list, inertial_taylor_1999_list, color = 'green', linewidth = 2, label = 'Inertial Taylor 1999 Rule')
 plt.plot(year_quarter_list, first_difference_list, color = 'purple', linewidth = 2, label = 'First Difference Rule')
 plt.title('Comparison of Projected FFR by FOMC Equations', fontweight = 'bold', backgroundcolor = 'silver')
-plt.xlabel('YEAR_QUARTER')
-plt.ylabel('ESTIMATED FFR')
+plt.xlabel('YEAR_QUARTER', labelpad = 10)
+plt.ylabel('ESTIMATED FFR', labelpad = 10)
 plt.xticks(year_quarter_list[::8], rotation = 45)
 plt.legend(loc = 'upper right')
 
