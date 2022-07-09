@@ -161,9 +161,12 @@ def write_to_google_sheets(dictionary, worksheet):
     worksheet.update_col(10, ffr_8)
     worksheet.update_col(11, ffr_9)
 
-write_to_google_sheets(date_to_taylor_1993, 'taylor_1993_projections')
-write_to_google_sheets(date_to_taylor_1999, 'taylor_1999_projections')
-write_to_google_sheets(date_to_inertial_taylor_1999, 'inertial_taylor_1999_projections')
+try:
+    write_to_google_sheets(date_to_taylor_1993, 'taylor_1993_projections')
+    write_to_google_sheets(date_to_taylor_1999, 'taylor_1999_projections')
+    write_to_google_sheets(date_to_inertial_taylor_1999, 'inertial_taylor_1999_projections')
+except:
+    pass
 
 def quarter_ahead_expectations(dictionary, quarter_ahead):
     quarter_ahead_expectations_list = []

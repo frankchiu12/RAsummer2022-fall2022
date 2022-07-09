@@ -76,7 +76,7 @@ for bar in bar_graph:
     i += 1
 
 plt.title('FOMC Equations Timeline', fontweight = 'bold', backgroundcolor = 'silver')
-plt.xlabel('YEAR')
-plt.ylabel('FOMC EQUATION')
+plt.xlabel('YEAR', labelpad = 10)
+plt.ylabel('FOMC EQUATION', labelpad = 10)
 plt.xticks([1999, 2001, 2003, 2005, 2007, 2009, 2011, 2013, 2015])
 plt.show()
