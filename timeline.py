@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime
 
-df = pd.read_excel('FOMC_equation.xlsx')
+df = pd.read_excel('other_data/FOMC_equation.xlsx')
 event_list = list(df.columns)
 date_list = df[event_list[0]].to_list()
 del event_list[0]

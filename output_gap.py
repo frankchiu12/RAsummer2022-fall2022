@@ -4,7 +4,7 @@ import pygsheets
 import matplotlib.pyplot as plt
 
 sheet = pygsheets.authorize(service_account_file = 'write_into_google_sheet.json').open('Summer RA')
-output_gap_df = pd.read_excel('Greenbook_Output_Gap_DH_Web.xlsx')
+output_gap_df = pd.read_excel('other_data/Greenbook_Output_Gap_DH_Web.xlsx')
 meeting_date_list = []
 for meeting_date in output_gap_df.columns:
     meeting_date_list.append(meeting_date)
