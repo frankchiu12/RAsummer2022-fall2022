@@ -100,24 +100,24 @@ for meeting_date in meeting_date_list:
                 break
 
 date_to_inertial_taylor_1999 = {}
-for i in range(len(meeting_date_list)):
-    CPI_list = GB_date_to_CPI[meeting_date_list[i]]
-    meeting_date_list[i] = datetime.strftime(meeting_date_list[i], '%m/%d/%Y')
-    output_gap_list = [x for x in output_gap_df[meeting_date_list[i]].tolist() if isinstance(x, float)]
+for meeting_date in meeting_date_list:
+    CPI_list = GB_date_to_CPI[meeting_date]
+    meeting_date = datetime.strftime(meeting_date, '%m/%d/%Y')
+    output_gap_list = [x for x in output_gap_df[meeting_date].tolist() if isinstance(x, float)]
     max_length = max(len(CPI_list), len(output_gap_list))
 
-    if meeting_date_list[i] not in date_to_inertial_taylor_1999:
-        date_to_inertial_taylor_1999[meeting_date_list[i]] = []
-        for j in range(max_length):
+    if meeting_date not in date_to_inertial_taylor_1999:
+        date_to_inertial_taylor_1999[meeting_date] = []
+        for i in range(max_length):
             try:
-                if j == 0:
-                    date_to_inertial_taylor_1999[meeting_date_list[i]].append('')
+                if i == 0:
+                    date_to_inertial_taylor_1999[meeting_date].append('')
                     continue
-                if pd.isna(CPI_list[j]):
-                    CPI_list[j] = ''
-                if pd.isna(output_gap_list[j]):
-                    output_gap_list[j] = ''
-                date_to_inertial_taylor_1999[meeting_date_list[i]].append(inertial_taylor_1999_equation(CPI_list[j], output_gap_list[j], date_to_taylor_1999[meeting_date_list[i]][j - 1]))
+                if pd.isna(CPI_list[i]):
+                    CPI_list[i] = ''
+                if pd.isna(output_gap_list[i]):
+                    output_gap_list[i] = ''
+                date_to_inertial_taylor_1999[meeting_date].append(inertial_taylor_1999_equation(CPI_list[i], output_gap_list[i], date_to_taylor_1999[meeting_date][i - 1]))
             except IndexError:
                 break
 
