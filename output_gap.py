@@ -179,7 +179,7 @@ plt.plot(meeting_date_list, quarter_ahead_expectations(date_to_taylor_1999, 1), 
 plt.plot(meeting_date_list, quarter_ahead_expectations(date_to_inertial_taylor_1999, 1), color = 'green', linewidth = 2, label = 'Inertial Taylor 1999 Rule')
 # TODO: how many quarters ahead?
 plt.title('Comparison of Projected FFR by FOMC Equations', fontweight = 'bold', backgroundcolor = 'silver')
-plt.xlabel('MEETING DATE')
+plt.xlabel('MEETING DATE', labelpad = 10)
 plt.ylabel('ESTIMATED FFR')
 plt.xticks(meeting_date_list[::8], rotation = 45)
 plt.legend(loc = 'upper right')
