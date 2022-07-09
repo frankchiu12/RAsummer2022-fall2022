@@ -123,8 +123,6 @@ class Plot:
         plot_IQR.plot(self.year_quarter_list, list(np.subtract(self.percentile_75th_list, self.percentile_25th_list)), color = 'purple', linewidth = 2, linestyle = 'dotted')
         plot_IQR.set_title('IQR', loc = 'left')
 
-        print(list(np.subtract(self.percentile_75th_list, self.percentile_25th_list)))
-
         for plot in plot_list:
             plot.set_xlabel('YEAR-QUARTER', fontsize = 9)
             plot.set_ylabel(statistic_in_words, fontsize = 9)
