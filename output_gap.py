@@ -33,7 +33,7 @@ writer = pd.ExcelWriter('Greenbook_Output_Gap_Updated.xlsx', engine = 'xlsxwrite
 output_gap_df.transpose().to_excel(writer)
 writer.save()
 
-FOMC_excel = pd.ExcelFile('GBweb_Row_Format.xlsx')
+FOMC_excel = pd.ExcelFile('other_data/GBweb_Row_Format.xlsx')
 CPI_df = pd.read_excel(FOMC_excel, 'gPCPI')
 FOMC_GB_date_list = [datetime.strptime(str(x), '%Y%m%d') for x in CPI_df['GBdate'].values.tolist()]
 
