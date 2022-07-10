@@ -263,11 +263,11 @@ class Survey:
 warnings.filterwarnings('ignore', category = UserWarning, module = 'openpyxl')
 
 # inflation
-Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Inflation expectations', 'Median one-year ahead expected inflation rate', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'px1_med_all', 'spf_plot_data/Individual_CPI.xlsx', 'CPI6', 'survey_data/medians.xlsx', 'CPI', 'CPI_1Y', 'other_data/GBweb_Row_Format.xlsx', 'gPCPI', 'gPCPIF4','survey_data/table1.xlsx', 'PCEInflation_t0', False, 'Inflation', 'EXPECTED INFLATION RATE ONE YEAR AHEAD') # TODO: Dec87
+Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Inflation expectations', 'Median one-year ahead expected inflation rate', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'px1_med_all', 'spf_plot_data/Individual_CPI.xlsx', 'CPI6', 'survey_data/medians.xlsx', 'CPI', 'CPI_1Y', 'other_data/GBweb_Row_Format.xlsx', 'gPCPI', 'gPCPIF4','survey_data/table1.xlsx', 'PCEInflation_t0', False, 'Inflation', 'EXPECTED INFLATION RATE ONE YEAR AHEAD') # TODO: Livingston Dec87
 
 # RGDP
 Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Earnings growth', 'Median expected earnings growth', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'inex_med_all', None, None, None, None, None, None, None, None, None, None, False, 'NGDP', 'EXPECTED EARNING/INCOME GROWTH RATE ONE YEAR AHEAD')
-Survey(None, None, None, None, None, 'spf_plot_data/Individual_RGDP.xlsx', 'RGDP6', 'survey_data/medians.xlsx', 'RGDPX', 'RGDPX_1Y', 'other_data/GBweb_Row_Format.xlsx', 'gRGDP', 'gRGDPF4', 'survey_data/table1.xlsx', 'ChangeinRealGDP_t0', False, 'RGDP', 'EXPECTED RGDP ONE YEAR AHEAD') # TODO: Dec85
+Survey(None, None, None, None, None, 'spf_plot_data/Individual_RGDP.xlsx', 'RGDP6', 'survey_data/medians.xlsx', 'RGDPX', 'RGDPX_1Y', 'other_data/GBweb_Row_Format.xlsx', 'gRGDP', 'gRGDPF4', 'survey_data/table1.xlsx', 'ChangeinRealGDP_t0', False, 'RGDP', 'EXPECTED RGDP ONE YEAR AHEAD') # TODO: Livingston Dec85
 
 # unemployment
 Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Unemployment Expectations', 'Mean probability that the U.S. unemployment rate will be higher one year from now', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'umex_u_all', None, None, None, None, None, None, None, None, None, None, False, 'Unemployment Rate', 'PROBABILITY US UNEMPLOYMENT RATE WILL BE HIGHER NEXT YEAR')

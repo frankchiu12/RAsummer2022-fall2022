@@ -78,8 +78,7 @@ z = np.ravel(w * np.sin(phi))
 tri = Triangulation(np.ravel(w), np.ravel(theta))
 fig8 = plt.figure()
 ax8 = plt.axes(projection='3d')
-ax8.plot_trisurf(x, y, z, triangles=tri.triangles,
-                cmap='plasma', linewidths=0.2);
+ax8.plot_trisurf(x, y, z, triangles=tri.triangles, cmap='plasma', linewidths=0.2);
 ax8.set_xlim(-1, 1); ax8.set_ylim(-1, 1); ax8.set_zlim(-1, 1)
 ax8.set_title('Möbius strip')
 
