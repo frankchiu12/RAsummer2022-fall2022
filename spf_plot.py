@@ -132,6 +132,7 @@ class Plot:
             plot.set_xticklabels(self.year_quarter_list[::16], rotation = 45)
             plot.grid()
 
+        plt.savefig('/Users/franksi-unchiu/Desktop/Handlan Summer Research 2022/Plots/spf_' + statistic_in_words + '.png', dpi = 1000)
         plt.show()
 
 os.system('cls' if os.name == 'nt' else 'clear')

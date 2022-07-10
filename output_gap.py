@@ -203,6 +203,7 @@ def plot(quarter_ahead):
     plt.legend(loc = 'upper right')
     plt.grid()
 
+    plt.savefig('/Users/franksi-unchiu/Desktop/Handlan Summer Research 2022/Plots/fomc_equation_projection_' + str(quarter_ahead) + '.png', dpi = 1000)
     plt.show()
 
 for i in range(1, 10):

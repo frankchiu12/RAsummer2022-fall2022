@@ -79,4 +79,6 @@ plt.title('FOMC Equations Timeline', fontweight = 'bold', backgroundcolor = 'sil
 plt.xlabel('YEAR', labelpad = 10)
 plt.ylabel('FOMC EQUATION', labelpad = 10)
 plt.xticks([1999, 2001, 2003, 2005, 2007, 2009, 2011, 2013, 2015])
+
+plt.savefig('/Users/franksi-unchiu/Desktop/Handlan Summer Research 2022/Plots/timeline.png', dpi = 1000)
 plt.show()

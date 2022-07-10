@@ -60,6 +60,7 @@ class Survey:
         plt.legend(loc = 'upper right')
         plt.grid()
 
+        plt.savefig('/Users/franksi-unchiu/Desktop/Handlan Summer Research 2022/Plots/survey_' + y_label + '.png', dpi = 1000)
         plt.show()
 
     def SCE(self, SCE_relative_file_path, SCE_spreadsheet, SCE_column):
@@ -266,7 +267,7 @@ warnings.filterwarnings('ignore', category = UserWarning, module = 'openpyxl')
 Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Inflation expectations', 'Median one-year ahead expected inflation rate', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'px1_med_all', 'spf_plot_data/Individual_CPI.xlsx', 'CPI6', 'survey_data/medians.xlsx', 'CPI', 'CPI_1Y', 'other_data/GBweb_Row_Format.xlsx', 'gPCPI', 'gPCPIF4','survey_data/table1.xlsx', 'PCEInflation_t0', False, 'Inflation', 'EXPECTED INFLATION RATE ONE YEAR AHEAD') # TODO: Livingston Dec87
 
 # RGDP
-Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Earnings growth', 'Median expected earnings growth', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'inex_med_all', None, None, None, None, None, None, None, None, None, None, False, 'NGDP', 'EXPECTED EARNING/INCOME GROWTH RATE ONE YEAR AHEAD')
+Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Earnings growth', 'Median expected earnings growth', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'inex_med_all', None, None, None, None, None, None, None, None, None, None, False, 'NGDP', 'EXPECTED EARNING OR INCOME GROWTH RATE ONE YEAR AHEAD')
 Survey(None, None, None, None, None, 'spf_plot_data/Individual_RGDP.xlsx', 'RGDP6', 'survey_data/medians.xlsx', 'RGDPX', 'RGDPX_1Y', 'other_data/GBweb_Row_Format.xlsx', 'gRGDP', 'gRGDPF4', 'survey_data/table1.xlsx', 'ChangeinRealGDP_t0', False, 'RGDP', 'EXPECTED RGDP ONE YEAR AHEAD') # TODO: Livingston Dec85
 
 # unemployment
