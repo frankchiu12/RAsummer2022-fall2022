@@ -1,7 +1,8 @@
 import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
 from datetime import datetime
 import pygsheets
-import matplotlib.pyplot as plt
 
 sheet = pygsheets.authorize(service_account_file = 'write_into_google_sheet.json').open('Summer RA')
 output_gap_df = pd.read_excel('other_data/Greenbook_Output_Gap_DH_Web.xlsx')
@@ -29,9 +30,11 @@ for i in range(len(meeting_date_list)):
                 break
 
 output_gap_df = pd.DataFrame(data_list, index = meeting_date_list, columns = year_quarter_list)
-writer = pd.ExcelWriter('Greenbook_Output_Gap_Updated.xlsx', engine = 'xlsxwriter')
-output_gap_df.transpose().to_excel(writer)
-writer.save()
+
+if pd.read_excel('Greenbook_Output_Gap_Updated.xlsx').empty:
+    writer = pd.ExcelWriter('Greenbook_Output_Gap_Updated.xlsx', engine = 'xlsxwriter')
+    output_gap_df.transpose().to_excel(writer)
+    writer.save()
 
 FOMC_excel = pd.ExcelFile('other_data/GBweb_Row_Format.xlsx')
 CPI_df = pd.read_excel(FOMC_excel, 'gPCPI')
@@ -50,19 +53,19 @@ for i in range(len(FOMC_GB_date_list)):
 
 def taylor_1993_equation(inflation, output_gap):
     try:
-        return 1.25 + inflation + 0.5 * (inflation - 2) + 0.5 * output_gap
+        return float(1.25 + inflation + 0.5 * (inflation - 2) + 0.5 * output_gap)
     except TypeError:
         return ''
 
 def taylor_1999_equation(inflation, output_gap):
     try:
-        return 1.25 + inflation + 0.5 * (inflation - 2) + output_gap
+        return float(1.25 + inflation + 0.5 * (inflation - 2) + output_gap)
     except TypeError:
         return ''
 
 def inertial_taylor_1999_equation(inflation, output_gap, prev_ffr):
     try:
-        return 0.85 * prev_ffr + 0.15 * (1.25 + inflation + 0.5 * (inflation - 2) + output_gap)
+        return float(0.85 * prev_ffr + 0.15 * (1.25 + inflation + 0.5 * (inflation - 2) + output_gap))
     except TypeError:
         return ''
 
@@ -169,22 +172,34 @@ except:
     pass
 
 def quarter_ahead_expectations(dictionary, quarter_ahead):
+    meeting_date_list = []
     quarter_ahead_expectations_list = []
     for date, predicted_ffr in dictionary.items():
+        meeting_date_list.append(str(date))
         quarter_ahead_expectations_list.append(predicted_ffr[quarter_ahead])
-    return quarter_ahead_expectations_list
+
+    temp_meeting_date_list = []
+    temp_quarter_ahead_expectations_list = []
+    for i in range(len(quarter_ahead_expectations_list)):
+        if quarter_ahead_expectations_list[i] != '':
+            temp_meeting_date_list.append(meeting_date_list[i])
+            temp_quarter_ahead_expectations_list.append(quarter_ahead_expectations_list[i])
+    meeting_date_list = temp_meeting_date_list
+    quarter_ahead_expectations_list = temp_quarter_ahead_expectations_list
+
+    return meeting_date_list, quarter_ahead_expectations_list
 
 def plot(quarter_ahead):
     plt.rcParams["figure.figsize"] = [12, 6]
     plt.rcParams["figure.autolayout"] = True
     plt.gcf().canvas.manager.set_window_title('FOMC Equations')
-    plt.plot(meeting_date_list, quarter_ahead_expectations(date_to_taylor_1993, quarter_ahead), color = 'red', linewidth = 2, label = 'Taylor 1993 Rule')
-    plt.plot(meeting_date_list, quarter_ahead_expectations(date_to_taylor_1999, quarter_ahead), color = 'blue', linewidth = 2, label = 'Taylor 1999 Rule')
-    plt.plot(meeting_date_list, quarter_ahead_expectations(date_to_inertial_taylor_1999, quarter_ahead), color = 'green', linewidth = 2, label = 'Inertial Taylor 1999 Rule')
-    plt.title('Comparison of Projected FFR by FOMC Equations', fontweight = 'bold', backgroundcolor = 'silver')
+    plt.plot(quarter_ahead_expectations(date_to_taylor_1993, quarter_ahead)[0], quarter_ahead_expectations(date_to_taylor_1993, quarter_ahead)[1], color = 'red', linewidth = 2, label = 'Taylor 1993 Rule')
+    plt.plot(quarter_ahead_expectations(date_to_taylor_1999, quarter_ahead)[0], quarter_ahead_expectations(date_to_taylor_1999, quarter_ahead)[1], color = 'blue', linewidth = 2, label = 'Taylor 1999 Rule')
+    plt.plot(quarter_ahead_expectations(date_to_inertial_taylor_1999, quarter_ahead)[0], quarter_ahead_expectations(date_to_inertial_taylor_1999, quarter_ahead)[1], color = 'green', linewidth = 2, label = 'Inertial Taylor 1999 Rule')
+    plt.title('Comparison of Projected FFR by FOMC Equations ' + str(i) + ' Quarter Ahead', fontweight = 'bold', backgroundcolor = 'silver')
     plt.xlabel('MEETING DATE', labelpad = 10)
-    plt.ylabel('ESTIMATED FFR')
-    plt.xticks(meeting_date_list[::8], rotation = 45)
+    plt.ylabel('ESTIMATED FFR', labelpad = 10)
+    plt.xticks(quarter_ahead_expectations(date_to_taylor_1993, quarter_ahead)[0][::8], rotation = 45)
     plt.legend(loc = 'upper right')
     plt.grid()
 
