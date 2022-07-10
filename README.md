@@ -1,7 +1,7 @@
 # RAsummer2022
 
 # TODO: finish
-This repository contains all of the code I wrote as a Research Assistant {insert overall description}
+This repository contains all of the code I wrote as a Research Assistant over Summer of 2022 {insert overall description}
 
 Libraries/technologies used: requests, Beautiful Soup, regex, datetime, pathlib, pandas, pygsheets, matplotlib, ElementTree XML API, etc.
 
