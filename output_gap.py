@@ -1,5 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.pyplot import cm
 import numpy as np
 from datetime import datetime
 import pygsheets
@@ -189,13 +190,15 @@ def quarter_ahead_expectations(dictionary, quarter_ahead):
 
     return meeting_date_list, quarter_ahead_expectations_list
 
-def plot(quarter_ahead):
+def plot_x_quarter_ahead(quarter_ahead):
     plt.rcParams["figure.figsize"] = [12, 6]
     plt.rcParams["figure.autolayout"] = True
     plt.gcf().canvas.manager.set_window_title('FOMC Equations')
+
     plt.plot(quarter_ahead_expectations(date_to_taylor_1993, quarter_ahead)[0], quarter_ahead_expectations(date_to_taylor_1993, quarter_ahead)[1], color = 'red', linewidth = 2, label = 'Taylor 1993 Rule')
     plt.plot(quarter_ahead_expectations(date_to_taylor_1999, quarter_ahead)[0], quarter_ahead_expectations(date_to_taylor_1999, quarter_ahead)[1], color = 'blue', linewidth = 2, label = 'Taylor 1999 Rule')
     plt.plot(quarter_ahead_expectations(date_to_inertial_taylor_1999, quarter_ahead)[0], quarter_ahead_expectations(date_to_inertial_taylor_1999, quarter_ahead)[1], color = 'green', linewidth = 2, label = 'Inertial Taylor 1999 Rule')
+
     plt.title('Comparison of Projected FFR by FOMC Equations ' + str(i) + ' Quarter Ahead', fontweight = 'bold', backgroundcolor = 'silver')
     plt.xlabel('MEETING DATE', labelpad = 10)
     plt.ylabel('ESTIMATED FFR', labelpad = 10)
@@ -203,12 +206,31 @@ def plot(quarter_ahead):
     plt.legend(loc = 'upper right')
     plt.grid()
 
-    plt.savefig('/Users/franksi-unchiu/Desktop/Handlan Summer Research 2022/Plots/fomc_equation_projection_' + str(quarter_ahead) + '.png', dpi = 1000)
+    plt.savefig('/Users/franksi-unchiu/Desktop/Handlan Summer Research 2022/Plots/fomc_equation_projection_' + str(quarter_ahead) + '_quarter_ahead' + '.png', dpi = 1000)
     plt.show()
 
-for i in range(1, 10):
-    plot(i)
+def plot_by_quarter_ahead(dictionary, label):
+    plt.rcParams["figure.figsize"] = [12, 6]
+    plt.rcParams["figure.autolayout"] = True
+    plt.gcf().canvas.manager.set_window_title('FOMC Equations')
 
-# TODO: sns.dark_palette("#69d", reverse=True, as_cmap=True)
+    color = iter(cm.plasma(np.linspace(0, 1, 10)))
+    for quarter_ahead in range(1, 10):
+        plt.plot(quarter_ahead_expectations(dictionary, quarter_ahead)[0], quarter_ahead_expectations(dictionary, quarter_ahead)[1], color = next(color), linewidth = 2, label = str(quarter_ahead) + ' Quarter Ahead')
 
-# TODO: all 9 lines; quarters into the future on horizontal and IR for three different rules for first meeting of 2016
+    plt.title('Projected FFR by Quarters Ahead (' + label + ')', fontweight = 'bold', backgroundcolor = 'silver')
+    plt.xlabel('MEETING DATE', labelpad = 10)
+    plt.ylabel('ESTIMATED FFR', labelpad = 10)
+    plt.xticks(quarter_ahead_expectations(date_to_taylor_1993, 1)[0][::8], rotation = 45)
+    plt.legend(loc = 'best')
+    plt.grid()
+
+    plt.savefig('/Users/franksi-unchiu/Desktop/Handlan Summer Research 2022/Plots/fomc_equation_projection_' + label + '.png', dpi = 1000)
+    plt.show()
+
+# for i in range(1, 10):
+#     plot_x_quarter_ahead(i)
+
+# plot_by_quarter_ahead(date_to_taylor_1993, 'Taylor 1993 Rule')
+# plot_by_quarter_ahead(date_to_taylor_1999, 'Taylor 1999 Rule')
+# plot_by_quarter_ahead(date_to_inertial_taylor_1999, 'Inertial Taylor 1999 Rule')
