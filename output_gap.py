@@ -208,3 +208,7 @@ def plot(quarter_ahead):
 
 for i in range(1, 10):
     plot(i)
+
+# TODO: sns.dark_palette("#69d", reverse=True, as_cmap=True)
+
+# TODO: all 9 lines; quarters into the future on horizontal and IR for three different rules for first meeting of 2016

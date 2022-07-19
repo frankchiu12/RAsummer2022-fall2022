@@ -264,11 +264,11 @@ class Survey:
 warnings.filterwarnings('ignore', category = UserWarning, module = 'openpyxl')
 
 # inflation
-Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Inflation expectations', 'Median one-year ahead expected inflation rate', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'px1_med_all', 'spf_plot_data/Individual_CPI.xlsx', 'CPI6', 'survey_data/medians.xlsx', 'CPI', 'CPI_1Y', 'other_data/GBweb_Row_Format.xlsx', 'gPCPI', 'gPCPIF4','survey_data/table1.xlsx', 'PCEInflation_t0', False, 'Inflation', 'EXPECTED INFLATION RATE ONE YEAR AHEAD') # TODO: Livingston Dec87
+Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Inflation expectations', 'Median one-year ahead expected inflation rate', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'px1_med_all', 'spf_plot_data/Individual_CPI.xlsx', 'CPI6', 'survey_data/medians.xlsx', 'CPI', 'CPI_1Y', 'other_data/GBweb_Row_Format.xlsx', 'gPCPI', 'gPCPIF4','survey_data/table1.xlsx', 'PCEInflation_t0', False, 'Inflation', 'EXPECTED INFLATION RATE ONE YEAR AHEAD') # TODO: Livingston Dec87 (H-G)/G; check inflation date range
 
 # RGDP
 Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Earnings growth', 'Median expected earnings growth', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'inex_med_all', None, None, None, None, None, None, None, None, None, None, False, 'NGDP', 'EXPECTED EARNING OR INCOME GROWTH RATE ONE YEAR AHEAD')
-Survey(None, None, None, None, None, 'spf_plot_data/Individual_RGDP.xlsx', 'RGDP6', 'survey_data/medians.xlsx', 'RGDPX', 'RGDPX_1Y', 'other_data/GBweb_Row_Format.xlsx', 'gRGDP', 'gRGDPF4', 'survey_data/table1.xlsx', 'ChangeinRealGDP_t0', False, 'RGDP', 'EXPECTED RGDP ONE YEAR AHEAD') # TODO: Livingston Dec85
+Survey(None, None, None, None, None, 'spf_plot_data/Individual_RGDP.xlsx', 'RGDP6', 'survey_data/medians.xlsx', 'RGDPX', 'RGDPX_1Y', 'other_data/GBweb_Row_Format.xlsx', 'gRGDP', 'gRGDPF4', 'survey_data/table1.xlsx', 'ChangeinRealGDP_t0', False, 'RGDP', 'EXPECTED RGDP ONE YEAR AHEAD') # TODO: Livingston Dec85 GDPX and same thing as above; change all to nominal
 
 # unemployment
 Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Unemployment Expectations', 'Mean probability that the U.S. unemployment rate will be higher one year from now', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'umex_u_all', None, None, None, None, None, None, None, None, None, None, False, 'Unemployment Rate', 'PROBABILITY US UNEMPLOYMENT RATE WILL BE HIGHER NEXT YEAR')
@@ -276,6 +276,7 @@ Survey(None, None, None, None, None, 'survey_data/Individual_UNEMP.xlsx', 'UNEMP
 
 # interest rate
 Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Interest rate expectations', 'Mean probability of higher average interest rate on savings accounts one year from now', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'ratex_u_all', None, None, None, None, None, None, None, None, None, None, False, 'Interest Rate', 'PROBABILITY OF HIGHER INTEREST RATE NEXT YEAR')
-Survey(None, None, None, None, None, 'spf_plot_data/Individual_RR1_TBILL_PGDP.xlsx', 'RR1_TBILL_PGDP_6', 'survey_data/medians.xlsx', 'TBILL', 'TBILL_1Y', None, None, None, 'survey_data/table1.xlsx', 'FederalFundsRate_t0', True, 'Interest Rate', 'EXPECTED INTEREST RATE ONE YEAR AHEAD')
+Survey(None, None, None, None, None, 'spf_plot_data/Individual_RR1_TBILL_PGDP.xlsx', 'RR1_TBILL_PGDP_6', 'survey_data/medians.xlsx', 'TBILL', 'TBILL_1Y', None, None, None, 'survey_data/table1.xlsx', 'FederalFundsRate_t0', True, 'Nominal Interest Rate', 'EXPECTED NOMINAL INTEREST RATE ONE YEAR AHEAD')
+# https://www.philadelphiafed.org/surveys-and-data/tbill
 
 # TODO: color scheme
