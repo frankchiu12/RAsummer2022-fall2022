@@ -131,7 +131,7 @@ class Survey:
                 if quarter not in SPF_year_to_quarter_to_statistic[year]:
                     SPF_year_to_quarter_to_statistic[year][quarter] = SPF_df1.loc[SPF_df1['YEAR'].eq(year) & SPF_df1['QUARTER'].eq(quarter)][SPF_column].tolist()
 
-        if SPF_column == 'RGDP6':  
+        if SPF_column == 'NGDP6':
             SPF_df2 = pd.read_excel(SPF_relative_file_path)
             SPF_previous_year_to_quarter_to_statistic = {}
             for year in SPF_year_list:
@@ -139,7 +139,7 @@ class Survey:
                     SPF_previous_year_to_quarter_to_statistic[year] = {}
                 for quarter in SPF_quarter_list:
                     if quarter not in SPF_previous_year_to_quarter_to_statistic[year]:
-                        SPF_previous_year_to_quarter_to_statistic[year][quarter] = SPF_df2.loc[SPF_df2['YEAR'].eq(year) & SPF_df2['QUARTER'].eq(quarter)]['RGDP5'].fillna('').tolist()
+                        SPF_previous_year_to_quarter_to_statistic[year][quarter] = SPF_df2.loc[SPF_df2['YEAR'].eq(year) & SPF_df2['QUARTER'].eq(quarter)]['NGDP5'].fillna('').tolist()
 
             for year in SPF_year_to_quarter_to_statistic:
                 for quarter in SPF_year_to_quarter_to_statistic[year]:  
@@ -193,13 +193,13 @@ class Survey:
         self.livingston_year_month_list = [datetime.strptime(str(x), '%Y-%m-%d %H:%M:%S') for x in self.livingston_year_month_list]
         self.livingston_year_month_list = [int(x.year) + int(x.month)/12 for x in self.livingston_year_month_list]
 
-        if livingston_spreadsheet == 'CPI' or livingston_spreadsheet == 'RGDPX':
+        if livingston_spreadsheet == 'CPI' or livingston_spreadsheet == 'GDPX':
             if livingston_spreadsheet == 'CPI':
                 self.livingston_year_month_list = self.livingston_year_month_list[39:]
                 self.livingston_statistic_list = self.livingston_statistic_list[39:]
                 previous_livingston_statistic_list = livingston_df.loc[:, 'CPI_ZY'].tolist()[39:]
-            if livingston_spreadsheet == 'RGDPX':
-                previous_livingston_statistic_list = livingston_df.loc[:, 'RGDPX_ZY'].tolist()
+            if livingston_spreadsheet == 'GDPX':
+                previous_livingston_statistic_list = livingston_df.loc[:, 'GDPX_ZY'].tolist()
 
             for i in range(0, len(self.livingston_statistic_list)):
                 self.livingston_statistic_list[i] = (self.livingston_statistic_list[i] - previous_livingston_statistic_list[i])/previous_livingston_statistic_list[i] * 100
@@ -273,7 +273,7 @@ Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Inflation expectations', 'Median one-
 
 # RGDP
 Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Earnings growth', 'Median expected earnings growth', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'inex_med_all', None, None, None, None, None, None, None, None, None, None, False, 'NGDP', 'EXPECTED EARNING OR INCOME GROWTH RATE ONE YEAR AHEAD')
-Survey(None, None, None, None, None, 'spf_plot_data/Individual_RGDP.xlsx', 'RGDP6', 'survey_data/medians.xlsx', 'RGDPX', 'RGDPX_1Y', 'other_data/GBweb_Row_Format.xlsx', 'gRGDP', 'gRGDPF4', 'survey_data/table1.xlsx', 'ChangeinRealGDP_t0', False, 'RGDP', 'EXPECTED RGDP ONE YEAR AHEAD')
+Survey(None, None, None, None, None, 'survey_data/Individual_NGDP.xlsx', 'NGDP6', 'survey_data/medians.xlsx', 'GDPX', 'GDPX_1Y', 'other_data/GBweb_Row_Format.xlsx', 'gNGDP', 'gNGDPF4', 'survey_data/table1.xlsx', 'ChangeinRealGDP_t0', False, 'NGDP', 'EXPECTED NGDP GROWTH RATE ONE YEAR AHEAD') # table1 doesn't have NGDP
 
 # unemployment
 Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Unemployment Expectations', 'Mean probability that the U.S. unemployment rate will be higher one year from now', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'umex_u_all', None, None, None, None, None, None, None, None, None, None, False, 'Unemployment Rate', 'PROBABILITY US UNEMPLOYMENT RATE WILL BE HIGHER NEXT YEAR')
