@@ -1,7 +1,6 @@
 # RAsummer2022
 
-# TODO: finish
-This repository contains all of the code I wrote as a Research Assistant over Summer of 2022 {insert overall description}
+This repository contains all of the code I wrote as a Research Assistant over Summer of 2022. I assisted Amy Handlan, economics professor at Brown University, in studying how Federal Reserve communication strategies influence consumer and industry expectations, monetary policy, survey projections, construction of economic rules, etc.
 
 Libraries/technologies used: requests, Beautiful Soup, regex, datetime, pathlib, pandas, pygsheets, matplotlib, ElementTree XML API, etc.
 
