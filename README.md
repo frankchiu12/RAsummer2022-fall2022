@@ -4,6 +4,8 @@ This repository contains all of the code I wrote as a Research Assistant over Su
 
 Libraries/technologies used: requests, Beautiful Soup, regex, datetime, pathlib, pandas, pygsheets, matplotlib, ElementTree XML API, etc.
 
+The plot folder contains all the output plots.
+
 The other_code folder contains miscellaneous code.
 
 The other_data folder contains a variety of data used throughout the project.
