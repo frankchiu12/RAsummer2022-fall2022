@@ -1,13 +1,14 @@
 # RAsummer2022
 
-# TODO: finish
-This repository contains all of the code I wrote as a Research Assistant over Summer of 2022 {insert overall description}
+This repository contains all of the code I wrote as a Research Assistant over Summer of 2022. I assisted Amy Handlan, economics professor at Brown University, in studying how Federal Reserve communication strategies influence consumer and industry expectations, monetary policy, survey projections, construction of economic rules, etc.
 
 Libraries/technologies used: requests, Beautiful Soup, regex, datetime, pathlib, pandas, pygsheets, matplotlib, ElementTree XML API, etc.
 
 The other_code folder contains miscellaneous code.
 
 The other_data folder contains a variety of data used throughout the project.
+
+The plot folder contains all the output plots.
 
 The pyfrbus_package folder contains the FRB/US model, a model of the US economy developed by the Federal Reserve Board for forecast, analysis, and research.
 

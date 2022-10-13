@@ -5,6 +5,9 @@ from datetime import datetime
 import math
 import copy
 import warnings
+import csv
+
+csv_file_path_list = []
 
 class Survey:
 
@@ -13,6 +16,21 @@ class Survey:
         plt.rcParams["figure.figsize"] = [12, 6]
         plt.rcParams["figure.autolayout"] = True
         plt.gcf().canvas.manager.set_window_title('Survey')
+
+        self.SCE_xdata = []
+        self.SCE_ydata = []
+        self.UMSC_xdata = []
+        self.UMSC_ydata = []
+        self.SPF_xdata = []
+        self.SPF_ydata = []
+        self.livingston_xdata = []
+        self.livingston_ydata = []
+        self.FOMC_xdata = []
+        self.FOMC_ydata = []
+        self.SEP_xdata = []
+        self.SEP_ydata = []
+        self.long_base_xdata = []
+        self.long_base_ydata = []
 
         list_to_use_for_xtick_list = []
         if FOMC_relative_file_path is not None:
@@ -54,6 +72,42 @@ class Survey:
             frac, whole = math.modf(xtick)
             temp_xtick_list.append(str(int(whole)) + '-' + str(int(frac * 12 + 0.1)))
 
+        SCE_dictionary = self.date_to_data(self.SCE_xdata, self.SCE_ydata)
+        UMSC_dictionary = self.date_to_data(self.UMSC_xdata, self.UMSC_ydata)
+        SPF_dictionary = self.date_to_data(self.SPF_xdata, self.SPF_ydata)
+        livingston_dictionary = self.date_to_data(self.livingston_xdata, self.livingston_ydata)
+        FOMC_dictionary = self.date_to_data(self.FOMC_xdata, self.FOMC_ydata)
+        SEP_dictionary = self.date_to_data(self.SEP_xdata, self.SEP_ydata)
+        long_base_dictionary = self.date_to_data(self.long_base_xdata, self.long_base_ydata)
+
+        csv_df = self.merge_dictionary(SCE_dictionary, UMSC_dictionary, 1)
+        csv_df = self.merge_dictionary(csv_df, SPF_dictionary, 2)
+        csv_df = self.merge_dictionary(csv_df, livingston_dictionary, 3)
+        csv_df = self.merge_dictionary(csv_df, FOMC_dictionary, 4)
+        csv_df = self.merge_dictionary(csv_df, SEP_dictionary, 5)
+        csv_df = self.merge_dictionary(csv_df, long_base_dictionary, 6)
+        csv_df = dict(sorted(csv_df.items()))
+        for date in csv_df.keys():
+            frac, whole = math.modf(date)
+            frac = str(int(frac * 12 + 0.1))
+            if frac == '0':
+                frac = '12'
+            modified_date = str(int(whole)) + '-' + frac
+            csv_df[date].insert(0, modified_date)
+
+        header_row = ['DATE', 'SCE', 'UMSC', 'SPF', 'LIVINGSTON', 'FOMC', 'SEP', 'LONGBASE']
+        for i in range(len(header_row)):
+            if i == 0:
+                continue
+            header_row[i] = header_row[i] + ' ' + y_label
+
+        with open('/Users/franksi-unchiu/Desktop/Handlan Summer Research 2022/' + y_label + '.csv', 'w', encoding = 'UTF8') as f:
+            writer = csv.writer(f)
+            writer.writerow(header_row)
+            for date in csv_df.keys():
+                writer.writerow(csv_df[date])
+        csv_file_path_list.append('/Users/franksi-unchiu/Desktop/Handlan Summer Research 2022/' + y_label + '.csv')
+
         plt.xticks(xtick_list[::16])
         xtick_list = temp_xtick_list
         plt.gca().set_xticklabels(xtick_list[::16], rotation = 45)
@@ -75,7 +129,9 @@ class Survey:
             year_month = int(year_month[0]) + int(year_month[1])/12
             self.SCE_year_month_list[i] = year_month
 
-        plt.plot(self.SCE_year_month_list, self.SCE_statistic_list, color = 'pink', linewidth = 2, label = 'Survey of Consumer Expectations')
+        SCE_plot, = plt.plot(self.SCE_year_month_list, self.SCE_statistic_list, color = 'pink', linewidth = 2, label = 'Survey of Consumer Expectations')
+        self.SCE_xdata = SCE_plot.get_xdata()
+        self.SCE_ydata = SCE_plot.get_ydata()
 
     def UMSC(self, UMSC_relative_file_path, UMSC_column):
         UMSC_df = pd.read_excel(UMSC_relative_file_path, usecols = ['Month', 'yyyy', UMSC_column], skiprows = [0])
@@ -114,7 +170,9 @@ class Survey:
             self.UMSC_year_month_list.append(year_month)
             self.UMSC_statistic_list.append(statistic)
 
-        plt.plot(self.UMSC_year_month_list, self.UMSC_statistic_list, color = 'purple', linewidth = 2, label = 'University of Michigan Survey of Consumers')
+        UMSC_plot, = plt.plot(self.UMSC_year_month_list, self.UMSC_statistic_list, color = 'purple', linewidth = 2, label = 'University of Michigan Survey of Consumers')
+        self.UMSC_xdata = UMSC_plot.get_xdata()
+        self.UMSC_ydata = UMSC_plot.get_ydata()
 
     def SPF(self, SPF_relative_file_path, SPF_column):
         SPF_df1 = pd.read_excel(SPF_relative_file_path).dropna(subset = SPF_column)
@@ -131,7 +189,7 @@ class Survey:
                 if quarter not in SPF_year_to_quarter_to_statistic[year]:
                     SPF_year_to_quarter_to_statistic[year][quarter] = SPF_df1.loc[SPF_df1['YEAR'].eq(year) & SPF_df1['QUARTER'].eq(quarter)][SPF_column].tolist()
 
-        if SPF_column == 'RGDP6':  
+        if SPF_column == 'NGDP6':
             SPF_df2 = pd.read_excel(SPF_relative_file_path)
             SPF_previous_year_to_quarter_to_statistic = {}
             for year in SPF_year_list:
@@ -139,7 +197,7 @@ class Survey:
                     SPF_previous_year_to_quarter_to_statistic[year] = {}
                 for quarter in SPF_quarter_list:
                     if quarter not in SPF_previous_year_to_quarter_to_statistic[year]:
-                        SPF_previous_year_to_quarter_to_statistic[year][quarter] = SPF_df2.loc[SPF_df2['YEAR'].eq(year) & SPF_df2['QUARTER'].eq(quarter)]['RGDP5'].fillna('').tolist()
+                        SPF_previous_year_to_quarter_to_statistic[year][quarter] = SPF_df2.loc[SPF_df2['YEAR'].eq(year) & SPF_df2['QUARTER'].eq(quarter)]['NGDP5'].fillna('').tolist()
 
             for year in SPF_year_to_quarter_to_statistic:
                 for quarter in SPF_year_to_quarter_to_statistic[year]:  
@@ -182,7 +240,9 @@ class Survey:
             self.SPF_year_month_list.append(year_month)
             self.SPF_statistic_list.append(statistic)
 
-        plt.plot(self.SPF_year_month_list, self.SPF_statistic_list, color = 'green', linewidth = 2, label = 'Survey of Professional Forecasters')
+        SPF_plot, = plt.plot(self.SPF_year_month_list, self.SPF_statistic_list, color = 'green', linewidth = 2, label = 'Survey of Professional Forecasters')
+        self.SPF_xdata = SPF_plot.get_xdata()
+        self.SPF_ydata = SPF_plot.get_ydata()
 
     def livingston(self, livingston_relative_file_path, livingston_spreadsheet, livingston_column):
         livingston_excel = pd.ExcelFile(livingston_relative_file_path)
@@ -193,18 +253,20 @@ class Survey:
         self.livingston_year_month_list = [datetime.strptime(str(x), '%Y-%m-%d %H:%M:%S') for x in self.livingston_year_month_list]
         self.livingston_year_month_list = [int(x.year) + int(x.month)/12 for x in self.livingston_year_month_list]
 
-        if livingston_spreadsheet == 'CPI' or livingston_spreadsheet == 'RGDPX':
+        if livingston_spreadsheet == 'CPI' or livingston_spreadsheet == 'GDPX':
             if livingston_spreadsheet == 'CPI':
                 self.livingston_year_month_list = self.livingston_year_month_list[39:]
                 self.livingston_statistic_list = self.livingston_statistic_list[39:]
                 previous_livingston_statistic_list = livingston_df.loc[:, 'CPI_ZY'].tolist()[39:]
-            if livingston_spreadsheet == 'RGDPX':
-                previous_livingston_statistic_list = livingston_df.loc[:, 'RGDPX_ZY'].tolist()
+            if livingston_spreadsheet == 'GDPX':
+                previous_livingston_statistic_list = livingston_df.loc[:, 'GDPX_ZY'].tolist()
 
             for i in range(0, len(self.livingston_statistic_list)):
                 self.livingston_statistic_list[i] = (self.livingston_statistic_list[i] - previous_livingston_statistic_list[i])/previous_livingston_statistic_list[i] * 100
 
-        plt.plot(self.livingston_year_month_list, self.livingston_statistic_list, color = 'blue', linewidth = 2, label = 'Livingston Survey')
+        livingston_plot, = plt.plot(self.livingston_year_month_list, self.livingston_statistic_list, color = 'blue', linewidth = 2, label = 'Livingston Survey')
+        self.livingston_xdata = self.livingston_year_month_list
+        self.livingston_ydata = livingston_plot.get_ydata()
 
     def FOMC(self, FOMC_relative_file_path, FOMC_spreadsheet, FOMC_column):
         FOMC_excel = pd.ExcelFile(FOMC_relative_file_path)
@@ -225,7 +287,9 @@ class Survey:
             temp_FOMC_year_month_list.append(whole + frac/12)
         self.FOMC_year_month_list = temp_FOMC_year_month_list
 
-        plt.plot(self.FOMC_year_month_list, self.FOMC_statistic_list, color = 'red', linewidth = 2, label = 'Tealbook Dataset')
+        FOMC_plot, = plt.plot(self.FOMC_year_month_list, self.FOMC_statistic_list, color = 'red', linewidth = 2, label = 'Tealbook Dataset')
+        self.FOMC_xdata = FOMC_plot.get_xdata()
+        self.FOMC_ydata = FOMC_plot.get_ydata()
 
     def SEP(self, SEP_relative_file_path, SEP_column):
         SEP_df = pd.read_excel(SEP_relative_file_path, usecols = ['meetingDate', SEP_column])
@@ -237,7 +301,9 @@ class Survey:
             else:
                 self.SEP_year_month_list[i] = int(self.SEP_year_month_list[i].split('/')[2]) + int(self.SEP_year_month_list[i].split('/')[1])/12
 
-        plt.plot(self.SEP_year_month_list, self.SEP_statistic_list, color = 'gray', linewidth = 2, label = 'SEP')
+        SEP_plot, = plt.plot(self.SEP_year_month_list, self.SEP_statistic_list, color = 'gray', linewidth = 2, label = 'SEP')
+        self.SEP_xdata = SEP_plot.get_xdata()
+        self.SEP_ydata = SEP_plot.get_ydata()
 
     def long_base(self):
         long_base_pd = pd.read_csv('pyfrbus_package/data/LONGBASE.TXT', usecols = ['OBS', 'ZRFF5']).dropna(subset = 'ZRFF5')
@@ -264,7 +330,37 @@ class Survey:
         self.long_base_year_month_list = [x for x in self.long_base_year_month_list if isinstance(x, float)]
         self.long_base_statistic_list = self.long_base_statistic_list[:index_to_stop]
 
-        plt.plot(self.long_base_year_month_list, self.long_base_statistic_list, color = 'yellow', linewidth = 2, label = 'LONGBASE')
+        long_base_plot, = plt.plot(self.long_base_year_month_list, self.long_base_statistic_list, color = 'yellow', linewidth = 2, label = 'LONGBASE')
+        self.long_base_xdata = long_base_plot.get_xdata()
+        self.long_base_ydata = long_base_plot.get_ydata()
+
+    def date_to_data(self, date_list, data_list):
+        dictionary = {}
+        for i in range(len(date_list)):
+            if date_list[i] not in dictionary:
+                dictionary[date_list[i]] = data_list[i]
+        return dictionary
+
+    def merge_dictionary(self, dictionary_1, dictionary_2, survey_number):
+        key_list = list(dictionary_1.keys()) + list(dictionary_2.keys())
+        new_dictionary = {}
+        for key in key_list:
+            if key in dictionary_1 and key in dictionary_2:
+                if isinstance(dictionary_1[key], list):
+                    new_dictionary[key] = dictionary_1[key] + [dictionary_2[key]]
+                else:
+                    new_dictionary[key] = [dictionary_1[key], dictionary_2[key]]
+            elif key in dictionary_1 and key not in dictionary_2:
+                if isinstance(dictionary_1[key], list):
+                    new_dictionary[key] = dictionary_1[key] + [None]
+                else:
+                    new_dictionary[key] = [dictionary_1[key], None]
+            elif key in dictionary_2 and key not in dictionary_1:
+                new_dictionary[key] = []
+                for i in range(survey_number):
+                    new_dictionary[key].insert(0, None)
+                new_dictionary[key].append(dictionary_2[key])
+        return new_dictionary
 
 warnings.filterwarnings('ignore', category = UserWarning, module = 'openpyxl')
 
@@ -273,7 +369,7 @@ Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Inflation expectations', 'Median one-
 
 # RGDP
 Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Earnings growth', 'Median expected earnings growth', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'inex_med_all', None, None, None, None, None, None, None, None, None, None, False, 'NGDP', 'EXPECTED EARNING OR INCOME GROWTH RATE ONE YEAR AHEAD')
-Survey(None, None, None, None, None, 'spf_plot_data/Individual_RGDP.xlsx', 'RGDP6', 'survey_data/medians.xlsx', 'RGDPX', 'RGDPX_1Y', 'other_data/GBweb_Row_Format.xlsx', 'gRGDP', 'gRGDPF4', 'survey_data/table1.xlsx', 'ChangeinRealGDP_t0', False, 'RGDP', 'EXPECTED RGDP ONE YEAR AHEAD')
+Survey(None, None, None, None, None, 'survey_data/Individual_NGDP.xlsx', 'NGDP6', 'survey_data/medians.xlsx', 'GDPX', 'GDPX_1Y', 'other_data/GBweb_Row_Format.xlsx', 'gNGDP', 'gNGDPF4', 'survey_data/table1.xlsx', 'ChangeinRealGDP_t0', False, 'NGDP', 'EXPECTED NGDP GROWTH RATE ONE YEAR AHEAD') # table1 doesn't have NGDP
 
 # unemployment
 Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Unemployment Expectations', 'Mean probability that the U.S. unemployment rate will be higher one year from now', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'umex_u_all', None, None, None, None, None, None, None, None, None, None, False, 'Unemployment Rate', 'PROBABILITY US UNEMPLOYMENT RATE WILL BE HIGHER NEXT YEAR')
@@ -282,3 +378,12 @@ Survey(None, None, None, None, None, 'survey_data/Individual_UNEMP.xlsx', 'UNEMP
 # interest rate
 Survey('survey_data/FRBNY-SCE-Data.xlsx', 'Interest rate expectations', 'Mean probability of higher average interest rate on savings accounts one year from now', 'survey_data/sca-tableall-on-2022-Jul-02.xls', 'ratex_u_all', None, None, None, None, None, None, None, None, None, None, False, 'Interest Rate', 'PROBABILITY OF HIGHER INTEREST RATE NEXT YEAR')
 Survey(None, None, None, None, None, 'survey_data/Individual_TBILL.xlsx', 'TBILL6', 'survey_data/medians.xlsx', 'TBILL', 'TBILL_1Y', None, None, None, 'survey_data/table1.xlsx', 'FederalFundsRate_t0', True, 'Nominal Interest Rate', 'EXPECTED NOMINAL INTEREST RATE ONE YEAR AHEAD')
+
+merged_df = pd.merge(pd.read_csv(csv_file_path_list[0]), pd.read_csv(csv_file_path_list[1]), how = 'outer')
+merged_df = pd.merge(merged_df, pd.read_csv(csv_file_path_list[2]), how = 'outer')
+merged_df = pd.merge(merged_df, pd.read_csv(csv_file_path_list[3]), how = 'outer')
+merged_df = pd.merge(merged_df, pd.read_csv(csv_file_path_list[4]), how = 'outer')
+merged_df = pd.merge(merged_df, pd.read_csv(csv_file_path_list[5]), how = 'outer')
+merged_df = pd.merge(merged_df, pd.read_csv(csv_file_path_list[6]), how = 'outer')
+merged_df = merged_df.sort_values(by = ['DATE'])
+merged_df.to_csv('/Users/franksi-unchiu/Desktop/Handlan Summer Research 2022/CUMULATIVE.csv', index = False, header = True)
