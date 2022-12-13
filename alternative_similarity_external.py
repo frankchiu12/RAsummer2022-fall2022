@@ -1,6 +1,5 @@
 import csv
 import pandas as pd
-from pytest import skip
 import spacy
 from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import TfidfVectorizer
