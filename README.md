@@ -37,5 +37,3 @@ survey_expectations.py parses data and plots the projected inflation, RGDP, unem
 timeline.py parses data on the evolution of Federal Open Market Committee policy rules and equations over time and plots them on a timeline.
 
 webscrapper.py utilizes BeautifulSoup to scrap the Federal Open Market Committee website for Federal Open Market Committee Press Statements for meetings from 1999 to 2022 (could include more) to extract necessary information about each meeting. It collects information on Statement Release Time, Press Conference Start Time, SEP Released, Minutes Release Date, and Internal Material Released. It utilizes nltk and spacy to extract information about voting patterns of Federal Open Market Committee officials by parsing the statements to obtain the Number of Members Voting in Favor, Number of Members Not in Favor, Names in Favor, Names Not in Favor, and Reason for Dissent. It writes all of this information into Google Sheets.
-
-[not updated with recent changes]
